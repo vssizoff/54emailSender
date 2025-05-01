@@ -23,7 +23,9 @@
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.1",
     "@electron-toolkit/utils": "^4.0.0",
+    "@primevue/themes": "^4.3.3",
     "nodemailer": "4.7.0",
+    "primevue": "^4.3.3",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {

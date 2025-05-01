@@ -2,6 +2,7 @@
 import { onMounted, ref } from "vue";
 import type { Entry } from "@renderer/types.js";
 import Email from "@renderer/components/Email.vue";
+import {Button} from "primevue";
 
 const emails = ref<Array<Entry>>([]);
 
@@ -25,7 +26,20 @@ function send() {
 </script>
 
 <template>
-  <button @click="selectFile">Select file</button>
-  <button @click="send">Send all</button>
-  <Email v-for="{email, firstName, lastName, name3, status} in emails" :email="email" :firstName="firstName" :lastName="lastName" :name3="name3" :status="status"/>
+  <div class="buttons">
+    <Button @click="selectFile">Выбрать таблицу</Button>
+    <Button @click="send">Отправить неотправленные</Button>
+  </div>
+  <Email v-for="{email, firstName, lastName, name3, status} in emails" :email="email" :firstName="firstName" :lastName="lastName" :name3="name3" :status="status" class="email"/>
 </template>
+
+<style scoped>
+.buttons {
+  display: flex;
+  gap: 20px;
+}
+
+.email {
+  margin-top: 20px;
+}
+</style>
