@@ -1,5 +1,5 @@
 appId: com.electron.app
-productName: 54email-sender
+productName: 54emailSender
 directories:
   buildResources: build
 files:
@@ -12,7 +12,7 @@ files:
 asarUnpack:
   - resources/**
 win:
-  executableName: 54email-sender
+  executableName: 54emailSender
 nsis:
   artifactName: ${name}-${version}-setup.${ext}
   shortcutName: ${productName}
@@ -31,12 +31,10 @@ dmg:
 linux:
   target:
     - AppImage
-    - snap
-    - deb
   maintainer: electronjs.org
   category: Utility
 appImage:
-  artifactName: ${name}-${version}.${ext}
+  artifactName: ${name}.${ext}
 npmRebuild: false
 publish:
   provider: generic

@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import {Button, Panel, Badge} from "primevue";
-import em = CSS.em;
+import { Badge, Button, Panel } from "primevue";
 
 const props = defineProps({
   firstName: {
