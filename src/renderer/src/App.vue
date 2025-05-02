@@ -14,6 +14,9 @@ onMounted(() => {
       return entry;
     });
   });
+  window.electron.ipcRenderer.on("rm", (_, searchEmail) => {
+    emails.value = emails.value.filter(({email}) => email !== searchEmail);
+  });
 });
 
 function selectFile() {
@@ -23,12 +26,17 @@ function selectFile() {
 function send() {
   window.electron.ipcRenderer.invoke("sendAll");
 }
+
+function rm() {
+  window.electron.ipcRenderer.invoke("rmAll");
+}
 </script>
 
 <template>
   <div class="buttons">
     <Button @click="selectFile">Выбрать таблицу</Button>
     <Button @click="send">Отправить неотправленные</Button>
+    <Button @click="rm" severity="danger">Очистить</Button>
   </div>
   <Email v-for="{email, firstName, lastName, name3, status} in emails" :email="email" :firstName="firstName" :lastName="lastName" :name3="name3" :status="status" class="email"/>
 </template>

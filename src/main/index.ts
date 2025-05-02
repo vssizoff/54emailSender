@@ -2,7 +2,7 @@ import { app, shell, BrowserWindow, ipcMain, dialog } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
-import { sendEmail, sendEmails, setEmails } from "./email.js";
+import { rm, rmAll, sendEmail, sendEmails, setEmails } from "./email.js";
 
 function createWindow(): void {
   // Create the browser window.
@@ -73,6 +73,14 @@ app.whenReady().then(() => {
 
   ipcMain.handle("send", async (event, email: string) => {
     await sendEmail(email, event.sender);
+  });
+
+  ipcMain.handle("rmAll", event => {
+    rmAll(event.sender);
+  });
+
+  ipcMain.handle("rm", (event, email: string) => {
+    rm(email, event.sender);
   });
 
   createWindow()

@@ -27,6 +27,10 @@ const props = defineProps({
 function send() {
   window.electron.ipcRenderer.invoke("send", props.email);
 }
+
+function rm() {
+  window.electron.ipcRenderer.invoke("rm", props.email);
+}
 </script>
 
 <template>
@@ -38,7 +42,7 @@ function send() {
     <span>{{props.firstName}} {{props.lastName}} {{props.name3}}</span>
     <div class="buttons">
       <Button @click="send">Отправить</Button>
-      <Button @click="send" severity="danger">Удалить</Button>
+      <Button @click="rm" severity="danger">Удалить</Button>
     </div>
   </Panel>
 </template>

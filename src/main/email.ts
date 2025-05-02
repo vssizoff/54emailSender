@@ -50,6 +50,16 @@ export async function sendEmails(app: WebContents) {
 }
 
 export function setEmails(file: string, app: WebContents) {
-  emails = validate(parse(file)).map(({valid, ...entry}) => ({status: valid ? 0 : -1, ...entry}));
+  emails = validate(parse(file)).map(({ valid, ...entry }) => ({ status: valid ? 0 : -1, ...entry }));
   app.send("set", emails);
+}
+
+export function rm(searchEmail: string, app: WebContents) {
+  emails = emails.filter(({email}) => email !== searchEmail);
+  app.send("rm", searchEmail);
+}
+
+export function rmAll(app: WebContents) {
+  emails = [];
+  app.send("set", []);
 }
