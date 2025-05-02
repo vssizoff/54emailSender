@@ -33,15 +33,22 @@ function rm() {
 </script>
 
 <template>
-  <div class="buttons">
-    <Button @click="selectFile">Выбрать таблицу</Button>
-    <Button @click="send">Отправить неотправленные</Button>
-    <Button @click="rm" severity="danger">Очистить</Button>
-  </div>
-  <Email v-for="{email, firstName, lastName, name3, status} in emails" :email="email" :firstName="firstName" :lastName="lastName" :name3="name3" :status="status" class="email"/>
+  <main>
+    <h1>Email рассылки</h1>
+    <div class="buttons">
+      <Button @click="selectFile">Выбрать таблицу</Button>
+      <Button @click="send">Отправить неотправленные</Button>
+      <Button @click="rm" severity="danger">Очистить</Button>
+    </div>
+    <Email v-for="{email, firstName, lastName, name3, status} in emails" :email="email" :firstName="firstName" :lastName="lastName" :name3="name3" :status="status" class="email"/>
+  </main>
 </template>
 
 <style scoped>
+main {
+  text-align: center;
+}
+
 .buttons {
   display: flex;
   gap: 20px;

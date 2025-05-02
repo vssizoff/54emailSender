@@ -36,18 +36,26 @@ function rm() {
 <template>
   <Panel>
     <template #header>
-      <span class="email">{{email}}</span>
-      <Badge :severity="props.status === -1 ? 'danger' : props.status === 0 ? 'info' : 'success'">{{props.status === -1 ? "Не email" : props.status === 0 ? "Не отправлено" : "Отправлено"}}</Badge>
+      <div class="header">
+        <span class="email">{{email}}</span>
+        <Badge :severity="props.status === -1 ? 'danger' : props.status === 0 ? 'info' : 'success'">{{props.status === -1 ? "Не email" : props.status === 0 ? "Не отправлено" : "Отправлено"}}</Badge>
+      </div>
     </template>
-    <span>{{props.firstName}} {{props.lastName}} {{props.name3}}</span>
+    <span class="text">{{props.firstName}} {{props.lastName}} {{props.name3}}</span>
     <div class="buttons">
-      <Button @click="send">Отправить</Button>
+      <Button @click="send" v-if="status === 0">Отправить</Button>
       <Button @click="rm" severity="danger">Удалить</Button>
     </div>
   </Panel>
 </template>
 
 <style scoped>
+.header {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+
 .email {
   font-weight: bold;
 }
@@ -56,6 +64,12 @@ function rm() {
   display: flex;
   justify-content: flex-end;
   gap: 20px;
+  width: 100%;
+}
+
+.text {
+  text-align: left;
+  display: inline-block;
   width: 100%;
 }
 </style>
