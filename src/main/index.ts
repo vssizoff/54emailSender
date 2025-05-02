@@ -3,6 +3,7 @@ import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { rm, rmAll, sendEmail, sendEmails, setEmails } from "./email.js";
+import { addEmail, editEmail, type EmailConfig, getEmails, removeEmail, selectEmail } from "./emailConfig.js";
 
 function createWindow(): void {
   // Create the browser window.
@@ -81,6 +82,26 @@ app.whenReady().then(() => {
 
   ipcMain.handle("rm", (event, email: string) => {
     rm(email, event.sender);
+  });
+
+  ipcMain.handle("getEmails", () => {
+    return getEmails();
+  });
+
+  ipcMain.handle("addEmail", (event, entry: EmailConfig) => {
+    addEmail(entry, event.sender);
+  });
+
+  ipcMain.handle("removeEmail", (event, index: number) => {
+    removeEmail(index, event.sender);
+  });
+
+  ipcMain.handle("editEmail", (event, index: number, entry: EmailConfig) => {
+    editEmail(index, entry, event.sender);
+  });
+
+  ipcMain.handle("selectEmail", (event, index: number) => {
+    selectEmail(index, event.sender);
   });
 
   createWindow()

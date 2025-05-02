@@ -1,24 +1,34 @@
-import {createTransport} from "nodemailer";
-import {mailHost, mailUser, mailPass} from "./config.json";
+import { createTransport, type Transporter } from "nodemailer";
 import { type Entry, parse, validate } from "./parse.js";
 import WebContents = Electron.WebContents;
+import SMTPTransport from "nodemailer/lib/smtp-transport/index.js";
+import type { EmailConfig } from "./emailConfig.js";
 
-export const mailer = createTransport({
-  host: mailHost,
-  port: 465,
-  secure: true,
-  auth: {
-    user: mailUser,
-    pass: mailPass
-  },
-});
+let mailUser = "";
+export let mailer: Transporter<SMTPTransport.SentMessageInfo, SMTPTransport.Options> | null;
+
+export function setup({mailHost, mailUser: mailUser_, mailPass, mailPort, mailSecure}: EmailConfig) {
+  mailer = createTransport({
+    host: mailHost,
+    port: mailPort,
+    secure: mailSecure,
+    auth: {
+      user: mailUser_,
+      pass: mailPass
+    },
+  });
+  console.log(mailer);
+  mailUser = mailUser_;
+}
 
 export async function send(to: string, subject: string, message: string) {
+  if (!mailer) return false;
   await mailer.sendMail({
     from: `Школa №54 <${mailUser}>`, to,
     subject: subject,
     html: message
   });
+  return true;
 }
 
 let emails: Array<Entry & {status: number}> = [];
@@ -27,7 +37,7 @@ export async function sendEmail(searchEmail: string, app: WebContents) {
   let entry = emails.filter(({status, email}) => status === 0 && email === searchEmail)[0];
   if (!entry) return;
   let {firstName, lastName, name3, email} = entry;
-  await send(email, "test", `${firstName} ${lastName} ${name3}`);
+  if (!(await send(email, "test", `${firstName} ${lastName} ${name3}`))) return;
   app.send("status", [email, 1]);
   emails.map(elem => {
     if (elem.email === searchEmail) return {
@@ -40,7 +50,10 @@ export async function sendEmail(searchEmail: string, app: WebContents) {
 
 export async function sendEmails(app: WebContents) {
   emails = await Promise.all(emails.filter(({status}) => status === 0).map(async ({firstName, lastName, name3, email}): Promise<Entry & {status: number}> => {
-    await send(email, "test", `${firstName} ${lastName} ${name3}`);
+    if (!(await send(email, "test", `${firstName} ${lastName} ${name3}`))) return {
+      firstName, lastName, name3, email,
+      status: 0
+    };
     app.send("status", [email, 1]);
     return {
       firstName, lastName, name3, email,
