@@ -4,6 +4,9 @@ import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { rm, rmAll, sendEmail, sendEmails, setEmails } from "./email.js";
 import { addEmail, editEmail, type EmailConfig, getEmails, removeEmail, selectEmail } from "./emailConfig.js";
+import { addTemplate, editTemplate, getTemplate, getTemplates, removeTemplate, selectTemplate } from "./templates.js";
+import FileFilter = Electron.FileFilter;
+import * as fs from "node:fs";
 
 function createWindow(): void {
   // Create the browser window.
@@ -53,7 +56,7 @@ app.whenReady().then(() => {
   })
 
   // IPC test
-  ipcMain.on('ping', () => console.log('pong'))
+  ipcMain.on('ping', () => console.log('pong'));
 
   ipcMain.on("selectFile", async event => {
     let file = await dialog.showOpenDialog({
@@ -102,6 +105,39 @@ app.whenReady().then(() => {
 
   ipcMain.handle("selectEmail", (event, index: number) => {
     selectEmail(index, event.sender);
+  });
+
+  ipcMain.handle("getTemplate", (_, index: number) => {
+    return getTemplate(index);
+  });
+
+  ipcMain.handle("getTemplates", () => {
+    return getTemplates();
+  });
+
+  ipcMain.handle("addTemplate", (event, name: string, data: string) => {
+    addTemplate(name, data, event.sender);
+  });
+
+  ipcMain.handle("removeTemplate", (event, index: number) => {
+    removeTemplate(index, event.sender);
+  });
+
+  ipcMain.handle("editTemplate", (event, index: number, name: string, data: string) => {
+    editTemplate(index, name, data, event.sender);
+  });
+
+  ipcMain.handle("selectTemplate", (event, index: number) => {
+    selectTemplate(index, event.sender);
+  });
+
+  ipcMain.on("readFile", async (_, title: string, filters: Array<FileFilter>) => {
+    let file = await dialog.showOpenDialog({
+      properties: ['openFile'],
+      title, filters
+    });
+    if (file.canceled) return;
+    return fs.readFileSync(file.filePaths[0]);
   });
 
   createWindow()

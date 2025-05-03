@@ -19,7 +19,7 @@ export function getEmails() {
 
 export function addEmail(entry: EmailConfig, app: WebContents) {
   if (!config) {
-    config = { emails: [], selected: 0 };
+    config = {emails: [], selected: 0};
     setup(config.emails[config.selected]);
   }
   config.emails.push(entry);
@@ -43,7 +43,6 @@ export function editEmail(index: number, entry: EmailConfig, app: WebContents) {
   config.emails = config?.emails.map((current, i) => {
     if (index !== i) return current;
     setup(entry);
-    console.log(entry);
     return entry;
   }) ?? [];
   set("emails.json", config);

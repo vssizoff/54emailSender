@@ -18,7 +18,6 @@ export function setup({mailHost, mailUser: mailUser_, mailPass, mailPort, mailSe
       pass: mailPass
     },
   });
-  console.log(mailer);
   mailUser = mailUser_ ?? "";
 }
 
