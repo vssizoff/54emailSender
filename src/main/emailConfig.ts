@@ -11,7 +11,7 @@ export type EmailConfig = {
 };
 
 let config = get<{emails: Array<EmailConfig>, selected: number}>("emails.json");
-if (config) setup(config.emails[config.selected]);
+if (config && config.selected < config.emails.length) setup(config.emails[config.selected] ?? {});
 
 export function getEmails() {
   return config;

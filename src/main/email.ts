@@ -4,10 +4,11 @@ import WebContents = Electron.WebContents;
 import SMTPTransport from "nodemailer/lib/smtp-transport/index.js";
 import type { EmailConfig } from "./emailConfig.js";
 
-let mailUser = "";
+let mailUser: string = "";
 export let mailer: Transporter<SMTPTransport.SentMessageInfo, SMTPTransport.Options> | null;
 
-export function setup({mailHost, mailUser: mailUser_, mailPass, mailPort, mailSecure}: EmailConfig) {
+export function setup({mailHost, mailUser: mailUser_, mailPass, mailPort, mailSecure}: Partial<EmailConfig> = {}) {
+  if (!mailHost || !mailUser_ || !mailPass || mailPort === undefined || mailSecure === undefined) return;
   mailer = createTransport({
     host: mailHost,
     port: mailPort,
@@ -18,7 +19,7 @@ export function setup({mailHost, mailUser: mailUser_, mailPass, mailPort, mailSe
     },
   });
   console.log(mailer);
-  mailUser = mailUser_;
+  mailUser = mailUser_ ?? "";
 }
 
 export async function send(to: string, subject: string, message: string) {
