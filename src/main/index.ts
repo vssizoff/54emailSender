@@ -115,16 +115,16 @@ app.whenReady().then(() => {
     return getTemplates();
   });
 
-  ipcMain.handle("addTemplate", (event, name: string, data: string) => {
-    addTemplate(name, data, event.sender);
+  ipcMain.handle("addTemplate", (event, name: string, sender: string, subject: string, data: string) => {
+    addTemplate(name, sender, subject, data, event.sender);
   });
 
   ipcMain.handle("removeTemplate", (event, index: number) => {
     removeTemplate(index, event.sender);
   });
 
-  ipcMain.handle("editTemplate", (event, index: number, name: string, data: string) => {
-    editTemplate(index, name, data, event.sender);
+  ipcMain.handle("editTemplate", (event, index: number, name: string, sender: string, subject: string, data: string) => {
+    editTemplate(index, name, sender, subject, data, event.sender);
   });
 
   ipcMain.handle("selectTemplate", (event, index: number) => {

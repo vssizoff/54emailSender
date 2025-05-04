@@ -13,10 +13,12 @@ const emailConfig = ref<{emails: Array<EmailConfigType>, selected: number} | nul
 const emailSelectorVisible = ref<boolean>(false);
 const newEmailEditorVisible = ref<boolean>(false);
 const newEmailConfig = ref<EmailConfigType | null>(null);
-const templates = ref<{templates: Array<{name: string, data: string}>, selected: number} | null>(null);
+const templates = ref<{templates: Array<{name: string, sender: string, subject: string, data: string}>, selected: number} | null>(null);
 const templateSelectorVisible = ref<boolean>(false);
 const newTemplateEditorVisible = ref<boolean>(false);
 const newTemplateName = ref<string>("");
+const newTemplateSender = ref<string>("Школa №54 <%mailUser%>");
+const newTemplateSubject = ref<string>("");
 const newTemplateData = ref<string>("");
 
 onMounted(async () => {
@@ -66,9 +68,11 @@ function addEmailConfig() {
 }
 
 function addTemplate() {
-  window.electron.ipcRenderer.invoke("addTemplate", newTemplateName.value, newTemplateData.value);
+  window.electron.ipcRenderer.invoke("addTemplate", newTemplateName.value, newTemplateSender.value, newTemplateSubject.value, newTemplateData.value);
   newTemplateEditorVisible.value = false;
   newTemplateName.value = "";
+  newTemplateSender.value = "Школa №54 <%mailUser%>";
+  newTemplateSubject.value = "";
   newTemplateData.value = "";
 }
 </script>
@@ -102,14 +106,20 @@ function addTemplate() {
       <h2>Шаблоны</h2>
       <Button @click="newTemplateEditorVisible = true">Добавить</Button>
     </header>
-    <div v-for="({name}, index) in templates?.templates ?? []" class="drawerEntry">
-      <TemplateConfig :name="name" :index="index" :selected="templates?.selected === index"/>
+    <div v-for="({name, sender, subject}, index) in templates?.templates ?? []" class="drawerEntry">
+      <TemplateConfig :name="name" :sender="sender" :subject="subject" :index="index" :selected="templates?.selected === index"/>
     </div>
   </Drawer>
   <EmailConfigDialog v-model:email="newEmailConfig" v-model:visible="newEmailEditorVisible">
     <Button severity="success" @click="addEmailConfig">Добавить</Button>
   </EmailConfigDialog>
-  <TemplateConfigDialog v-model:name="newTemplateName" v-model:data="newTemplateData" v-model:visible="newTemplateEditorVisible">
+  <TemplateConfigDialog
+    v-model:name="newTemplateName"
+    v-model:sender="newTemplateSender"
+    v-model:subject="newTemplateSubject"
+    v-model:data="newTemplateData"
+    v-model:visible="newTemplateEditorVisible"
+  >
     <Button severity="success" @click="addTemplate">Добавить</Button>
   </TemplateConfigDialog>
 </template>

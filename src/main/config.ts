@@ -35,7 +35,7 @@ export function write(file: string, data: string) {
 }
 
 export function set(file: string, data: object | number | string | null) {
-  write(file, data === null ? "" : JSON.stringify(data));
+  write(file, data === null ? "" : JSON.stringify(data, null, 4));
 }
 
 export function remove(file: string) {

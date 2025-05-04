@@ -8,6 +8,14 @@ const props = defineProps({
     type: String,
     required: true
   },
+  sender: {
+    type: String,
+    required: true
+  },
+  subject: {
+    type: String,
+    required: true
+  },
   selected: {
     type: Boolean,
     default: false
@@ -20,6 +28,8 @@ const props = defineProps({
 
 const editorVisible = ref<boolean>(false);
 const editorName = ref<string>(props.name);
+const editorSender = ref<string>(props.sender);
+const editorSubject = ref<string>(props.subject);
 const editorData = ref<string>("");
 
 function select() {
@@ -31,9 +41,11 @@ function rm() {
 }
 
 function editEmailConfig() {
-  window.electron.ipcRenderer.invoke("editTemplate", props.index, editorName.value, editorData.value);
+  window.electron.ipcRenderer.invoke("editTemplate", props.index, editorName.value, editorSender.value, editorSubject.value, editorData.value);
   editorVisible.value = false;
   editorName.value = props.name;
+  editorSender.value = props.sender;
+  editorSubject.value = props.subject;
   editorData.value = "";
 }
 
@@ -41,13 +53,16 @@ function openEditor() {
   window.electron.ipcRenderer.invoke("getTemplate", props.index).then(data => {
     if (typeof data !== "string") return;
     editorData.value = data;
-    console.log(editorData.value);
     editorVisible.value = true;
   });
 }
 
 watch(props, value => {
-  if (!editorVisible.value) editorName.value = value.name;
+  if (!editorVisible.value) {
+    editorName.value = value.name;
+    editorSender.value = value.sender;
+    editorSubject.value = value.subject;
+  }
 });
 </script>
 
@@ -65,7 +80,7 @@ watch(props, value => {
       <Button @click="rm" severity="danger">Удалить</Button>
     </div>
   </Panel>
-  <TemplateConfigDialog v-model:name="editorName" v-model:data="editorData" v-model:visible="editorVisible">
+  <TemplateConfigDialog v-model:name="editorName" v-model:sender="editorSender" v-model:subject="editorSubject" v-model:data="editorData" v-model:visible="editorVisible">
     <Button severity="success" @click="editEmailConfig">Изменить</Button>
   </TemplateConfigDialog>
 </template>

@@ -22,14 +22,29 @@ export function setup({mailHost, mailUser: mailUser_, mailPass, mailPort, mailSe
   mailUser = mailUser_ ?? "";
 }
 
-export async function send(to: string, subject: string, message: string) {
+export async function send(to: string, sender: string, subject: string, message: string) {
   if (!mailer) return false;
-  await mailer.sendMail({
-    from: `Школa №54 <${mailUser}>`, to,
+  console.log("Sending:", {
+    from: sender,
+    to,
     subject: subject,
     html: message
   });
-  return true;
+  try {
+    await mailer.sendMail({
+      from: sender,
+      to,
+      subject: subject,
+      html: message
+    });
+    console.log("Success");
+    return true;
+  }
+  catch (error) {
+    console.log("Failed");
+    console.error(error);
+    return false;
+  }
 }
 
 let emails: Array<Entry & {status: number}> = [];
@@ -38,7 +53,11 @@ export async function sendEmail(searchEmail: string, app: WebContents) {
   let entry = emails.filter(({status, email}) => status === 0 && email === searchEmail)[0];
   if (!entry) return;
   let {firstName, lastName, name3, email} = entry;
-  if (!(await send(email, "test", useTemplate({firstName, lastName, name3, email, mailUser}) ?? ""))) return;
+  let template = useTemplate({firstName, lastName, name3, email, mailUser});
+  if (!template) return;
+  let {data, subject, sender} = template;
+  let success = await send(email, sender, subject, data);
+  if (!success) return;
   app.send("status", [email, 1]);
   emails.map(elem => {
     if (elem.email === searchEmail) return {
