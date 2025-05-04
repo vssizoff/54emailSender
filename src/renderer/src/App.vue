@@ -83,6 +83,9 @@ function addTemplate() {
       <Button @click="send">Отправить неотправленные</Button>
       <Button @click="rm" severity="danger">Очистить</Button>
     </div>
+    <p>
+      Отправка занимает время. Не нажимайте кнопку "Отправить" несколько раз
+    </p>
     <Email v-for="{email, firstName, lastName, name3, status} in emails" :email="email" :firstName="firstName" :lastName="lastName" :name3="name3" :status="status" class="email"/>
   </main>
   <Drawer position="right" v-model:visible="emailSelectorVisible" :class="$style.drawer">

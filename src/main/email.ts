@@ -50,17 +50,21 @@ export async function sendEmail(searchEmail: string, app: WebContents) {
 }
 
 export async function sendEmails(app: WebContents) {
-  emails = await Promise.all(emails.filter(({status}) => status === 0).map(async ({firstName, lastName, name3, email}): Promise<Entry & {status: number}> => {
-    if (!(await send(email, "test", `${firstName} ${lastName} ${name3}`))) return {
-      firstName, lastName, name3, email,
-      status: 0
-    };
-    app.send("status", [email, 1]);
-    return {
-      firstName, lastName, name3, email,
-      status: 1
-    };
-  }));
+  // emails = await Promise.all(emails.filter(({status}) => status === 0).map(async ({firstName, lastName, name3, email}): Promise<Entry & {status: number}> => {
+  //   if (!(await send(email, "test", useTemplate({firstName, lastName, name3, email, mailUser}) ?? ""))) return {
+  //     firstName, lastName, name3, email,
+  //     status: 0
+  //   };
+  //   app.send("status", [email, 1]);
+  //   return {
+  //     firstName, lastName, name3, email,
+  //     status: 1
+  //   };
+  // }));
+  for (const {email, status} of emails) {
+    if (status !== 0) continue;
+    await sendEmail(email, app);
+  }
 }
 
 export function setEmails(file: string, app: WebContents) {
