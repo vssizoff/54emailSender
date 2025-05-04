@@ -5,12 +5,19 @@ import Email from "@renderer/components/Email.vue";
 import EmailConfig from "@renderer/components/EmailConfig.vue";
 import {Button, Drawer} from "primevue";
 import EmailConfigDialog from "@renderer/components/EmailConfigDialog.vue";
+import TemplateConfig from "@renderer/components/TemplateConfig.vue";
+import TemplateConfigDialog from "@renderer/components/TemplateConfigDialog.vue";
 
 const emails = ref<Array<Entry>>([]);
 const emailConfig = ref<{emails: Array<EmailConfigType>, selected: number} | null>(null);
 const emailSelectorVisible = ref<boolean>(false);
 const newEmailEditorVisible = ref<boolean>(false);
 const newEmailConfig = ref<EmailConfigType | null>(null);
+const templates = ref<{templates: Array<{name: string, data: string}>, selected: number} | null>(null);
+const templateSelectorVisible = ref<boolean>(false);
+const newTemplateEditorVisible = ref<boolean>(false);
+const newTemplateName = ref<string>("");
+const newTemplateData = ref<string>("");
 
 onMounted(async () => {
   window.electron.ipcRenderer.on("set", (_, newEmails: Array<Entry>) => emails.value = newEmails);
@@ -30,7 +37,15 @@ onMounted(async () => {
     if (!emailConfig.value) return;
     emailConfig.value.selected = index;
   });
+  window.electron.ipcRenderer.on("templates", (_, newTemplates) => {
+    templates.value = newTemplates;
+  });
+  window.electron.ipcRenderer.on("templates.select", (_, index) => {
+    if (!templates.value) return;
+    templates.value.selected = index;
+  });
   emailConfig.value = await window.electron.ipcRenderer.invoke("getEmails");
+  templates.value = await window.electron.ipcRenderer.invoke("getTemplates");
 });
 
 function selectFile() {
@@ -49,6 +64,13 @@ function addEmailConfig() {
   window.electron.ipcRenderer.invoke("addEmail", JSON.parse(JSON.stringify(newEmailConfig.value)));
   newEmailEditorVisible.value = false;
 }
+
+function addTemplate() {
+  window.electron.ipcRenderer.invoke("addTemplate", newTemplateName.value, newTemplateData.value);
+  newTemplateEditorVisible.value = false;
+  newTemplateName.value = "";
+  newTemplateData.value = "";
+}
 </script>
 
 <template>
@@ -57,23 +79,36 @@ function addEmailConfig() {
     <div class="buttons">
       <Button @click="emailSelectorVisible = true">Выбрать отправителя</Button>
       <Button @click="selectFile">Выбрать таблицу</Button>
+      <Button @click="templateSelectorVisible = true">Выбрать шаблон</Button>
       <Button @click="send">Отправить неотправленные</Button>
       <Button @click="rm" severity="danger">Очистить</Button>
     </div>
     <Email v-for="{email, firstName, lastName, name3, status} in emails" :email="email" :firstName="firstName" :lastName="lastName" :name3="name3" :status="status" class="email"/>
   </main>
-  <Drawer position="right" v-model:visible="emailSelectorVisible" :class="$style.emailSelector">
-    <header class="emailHeader">
+  <Drawer position="right" v-model:visible="emailSelectorVisible" :class="$style.drawer">
+    <header class="drawerHeader">
       <h2>Email configs</h2>
       <Button @click="newEmailEditorVisible = true">Добавить</Button>
     </header>
-    <div v-for="(email, index) in emailConfig?.emails ?? []" class="emailConfig">
+    <div v-for="(email, index) in emailConfig?.emails ?? []" class="drawerEntry">
       <EmailConfig :email="email" :index="index" :selected="emailConfig?.selected === index"/>
+    </div>
+  </Drawer>
+  <Drawer position="right" v-model:visible="templateSelectorVisible" :class="$style.drawer">
+    <header class="drawerHeader">
+      <h2>Шаблоны</h2>
+      <Button @click="newTemplateEditorVisible = true">Добавить</Button>
+    </header>
+    <div v-for="({name}, index) in templates?.templates ?? []" class="drawerEntry">
+      <TemplateConfig :name="name" :index="index" :selected="templates?.selected === index"/>
     </div>
   </Drawer>
   <EmailConfigDialog v-model:email="newEmailConfig" v-model:visible="newEmailEditorVisible">
     <Button severity="success" @click="addEmailConfig">Добавить</Button>
   </EmailConfigDialog>
+  <TemplateConfigDialog v-model:name="newTemplateName" v-model:data="newTemplateData" v-model:visible="newTemplateEditorVisible">
+    <Button severity="success" @click="addTemplate">Добавить</Button>
+  </TemplateConfigDialog>
 </template>
 
 <style scoped>
@@ -90,19 +125,19 @@ main {
   margin-top: 20px;
 }
 
-.emailHeader {
+.drawerHeader {
   display: flex;
   justify-content: space-between;
   width: 100%;
 }
 
-.emailConfig {
+.drawerEntry {
   margin-top: 20px;
 }
 </style>
 
 <style module>
-.emailSelector {
+.drawer {
   width: 600px !important;
   max-width: 80dvw !important;
 }

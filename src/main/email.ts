@@ -3,6 +3,7 @@ import { type Entry, parse, validate } from "./parse.js";
 import WebContents = Electron.WebContents;
 import SMTPTransport from "nodemailer/lib/smtp-transport/index.js";
 import type { EmailConfig } from "./emailConfig.js";
+import { useTemplate } from "./templates.js";
 
 let mailUser: string = "";
 export let mailer: Transporter<SMTPTransport.SentMessageInfo, SMTPTransport.Options> | null;
@@ -37,7 +38,7 @@ export async function sendEmail(searchEmail: string, app: WebContents) {
   let entry = emails.filter(({status, email}) => status === 0 && email === searchEmail)[0];
   if (!entry) return;
   let {firstName, lastName, name3, email} = entry;
-  if (!(await send(email, "test", `${firstName} ${lastName} ${name3}`))) return;
+  if (!(await send(email, "test", useTemplate({firstName, lastName, name3, email, mailUser}) ?? ""))) return;
   app.send("status", [email, 1]);
   emails.map(elem => {
     if (elem.email === searchEmail) return {

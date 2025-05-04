@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import { Badge, Button, Panel } from "primevue";
-import type { EmailConfigType } from "@renderer/types.js";
-import { type PropType, ref, watch } from "vue";
-import EmailConfigDialog from "@renderer/components/EmailConfigDialog.vue";
+import { ref, watch } from "vue";
+import TemplateConfigDialog from "@renderer/components/TemplateConfigDialog.vue";
 
 const props = defineProps({
-  email: {
-    type: Object as PropType<EmailConfigType>,
+  name: {
+    type: String,
     required: true
   },
   selected: {
@@ -20,24 +19,35 @@ const props = defineProps({
 });
 
 const editorVisible = ref<boolean>(false);
-const editorEmailConfig = ref<EmailConfigType | null>(props.email);
+const editorName = ref<string>(props.name);
+const editorData = ref<string>("");
 
 function select() {
-  window.electron.ipcRenderer.invoke("selectEmail", props.index);
+  window.electron.ipcRenderer.invoke("selectTemplate", props.index);
 }
 
 function rm() {
-  window.electron.ipcRenderer.invoke("removeEmail", props.index);
+  window.electron.ipcRenderer.invoke("removeTemplate", props.index);
 }
 
 function editEmailConfig() {
-  window.electron.ipcRenderer.invoke("editEmail", props.index, JSON.parse(JSON.stringify(editorEmailConfig.value)));
+  window.electron.ipcRenderer.invoke("editTemplate", props.index, editorName.value, editorData.value);
   editorVisible.value = false;
-  editorEmailConfig.value = props.email;
+  editorName.value = props.name;
+  editorData.value = "";
+}
+
+function openEditor() {
+  window.electron.ipcRenderer.invoke("getTemplate", props.index).then(data => {
+    if (typeof data !== "string") return;
+    editorData.value = data;
+    console.log(editorData.value);
+    editorVisible.value = true;
+  });
 }
 
 watch(props, value => {
-  if (!editorVisible.value) editorEmailConfig.value = value.email;
+  if (!editorVisible.value) editorName.value = value.name;
 });
 </script>
 
@@ -45,20 +55,19 @@ watch(props, value => {
   <Panel>
     <template #header>
       <div class="header">
-        <span class="email">{{email.mailUser}}</span>
+        <span class="name">{{name}}</span>
         <Badge severity="success" v-if="selected">Выбрано</Badge>
       </div>
     </template>
-    <span class="text">{{props.email.mailHost}}</span>
     <div class="buttons">
       <Button @click="select" :disabled="selected">Выбрать</Button>
-      <Button @click="editorVisible = true">Изменить</Button>
+      <Button @click="openEditor">Изменить</Button>
       <Button @click="rm" severity="danger">Удалить</Button>
     </div>
   </Panel>
-  <EmailConfigDialog v-model:email="editorEmailConfig" v-model:visible="editorVisible">
+  <TemplateConfigDialog v-model:name="editorName" v-model:data="editorData" v-model:visible="editorVisible">
     <Button severity="success" @click="editEmailConfig">Изменить</Button>
-  </EmailConfigDialog>
+  </TemplateConfigDialog>
 </template>
 
 <style scoped>
@@ -68,7 +77,7 @@ watch(props, value => {
   width: 100%;
 }
 
-.email {
+.name {
   font-weight: bold;
 }
 
@@ -76,12 +85,6 @@ watch(props, value => {
   display: flex;
   justify-content: flex-end;
   gap: 20px;
-  width: 100%;
-}
-
-.text {
-  text-align: left;
-  display: inline-block;
   width: 100%;
 }
 </style>
