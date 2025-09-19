@@ -14,7 +14,7 @@ export type Entry = {
   lastName: string,
   name3: string,
   email: string,
-  columns: Record<string, string>
+  columns: Record<string, any>
 };
 
 function parseKey(key: string): [string, number] {
@@ -33,7 +33,7 @@ export function parse(file: string, options: ParseOptions): Array<Entry> {
       lastNames = new Map<number, string>,
       names3 = new Map<number, string>,
       emails = new Map<number, string>,
-      columns = new Map<number, Record<string, string>>;
+      columns = new Map<number, Record<string, any>>;
   Object.keys(sheet).filter(cell => !cell.startsWith("!")).forEach(key => {
     let [column, row] = parseKey(key);
     if (row <= options.skip) return;
