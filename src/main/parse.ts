@@ -1,29 +1,55 @@
 import * as XLSX from "xlsx";
 
+export type ParseOptions = {
+  nameColumn: string,
+  surnameColumn: string,
+  name3Column: string,
+  emailColumn: string,
+  canName3Empty: string,
+  skip: number
+};
+
 export type Entry = {
   firstName: string,
   lastName: string,
   name3: string,
-  email: string
+  email: string,
+  columns: Record<string, string>
 };
 
-export function parse(file: string): Array<Entry> {
+function parseKey(key: string): [string, number] {
+  let i = 0;
+  let column = "";
+  for (; i < key.length && key[i] >= 'A' && key[i] <= 'Z'; i++) {
+    column += key[i];
+  }
+  return [column, Number(key.substring(i))];
+}
+
+export function parse(file: string, options: ParseOptions): Array<Entry> {
   const workbook = XLSX.readFile(file);
   const sheet = workbook.Sheets[workbook.SheetNames[0]];
-  let firstNames = new Map<number, string>, lastNames = new Map<number, string>, names3 = new Map<number, string>, emails = new Map<number, string>;
+  let firstNames = new Map<number, string>,
+      lastNames = new Map<number, string>,
+      names3 = new Map<number, string>,
+      emails = new Map<number, string>,
+      columns = new Map<number, Record<string, string>>;
   Object.keys(sheet).filter(cell => !cell.startsWith("!")).forEach(key => {
-    let row = Number(key[1]);
-    switch (key[0]) {
-      case "A":
+    let [column, row] = parseKey(key);
+    if (row <= options.skip) return;
+    columns.set(row, {...columns.get(row), [column]: sheet[key].v});
+    console.log(sheet[key]);
+    switch (column) {
+      case options.nameColumn:
         firstNames.set(row, sheet[key].v);
         break;
-      case "B":
+      case options.surnameColumn:
         lastNames.set(row, sheet[key].v);
         break;
-      case "C":
+      case options.name3Column:
         names3.set(row, sheet[key].v);
         break;
-      case "D":
+      case options.emailColumn:
         emails.set(row, sheet[key].v);
         break;
     }
@@ -31,8 +57,14 @@ export function parse(file: string): Array<Entry> {
   let max = Math.max(...Array.from(firstNames.keys()), ...Array.from(lastNames.keys()), ...Array.from(names3.keys()), ...Array.from(emails.keys()));
   let ret: Array<Entry> = [];
   for (let i = 1; i <= max; i++) {
-    if (!firstNames.has(i) || !lastNames.has(i) || !names3.has(i) || !emails.has(i)) continue;
-    ret.push({firstName: firstNames.get(i) ?? "", lastName: lastNames.get(i) ?? "", name3: names3.get(i) ?? "", email: emails.get(i) ?? ""});
+    if (!firstNames.has(i) || !lastNames.has(i) || (!names3.has(i) && !options.canName3Empty) || !emails.has(i)) continue;
+    ret.push({
+      firstName: firstNames.get(i) ?? "",
+      lastName: lastNames.get(i) ?? "",
+      name3: names3.get(i) ?? "",
+      email: emails.get(i) ?? "",
+      columns: columns.get(i) ?? {},
+    });
   }
   return ret;
 }

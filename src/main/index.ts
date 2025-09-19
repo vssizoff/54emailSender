@@ -7,6 +7,7 @@ import { addEmail, editEmail, type EmailConfig, getEmails, removeEmail, selectEm
 import { addTemplate, editTemplate, getTemplate, getTemplates, removeTemplate, selectTemplate } from "./templates.js";
 import FileFilter = Electron.FileFilter;
 import * as fs from "node:fs";
+import type {ParseOptions} from "./parse.js";
 
 function createWindow(): void {
   // Create the browser window.
@@ -58,17 +59,17 @@ app.whenReady().then(() => {
   // IPC test
   ipcMain.on('ping', () => console.log('pong'));
 
-  ipcMain.on("selectFile", async event => {
+  ipcMain.on("selectFile", async (event, options: ParseOptions) => {
     let file = await dialog.showOpenDialog({
       properties: ['openFile'],
       title: "Выберите XLSX таблицу",
       filters: [
-        {name: 'Excel Files', extensions: ["xlsx"]},
+        {name: 'Excel Files', extensions: ["xlsx", "xls", "ods"]},
         {name: 'All Files', extensions: ["*"]}
       ],
     });
     if (file.canceled) return;
-    setEmails(file.filePaths[0], event.sender);
+    setEmails(file.filePaths[0], options, event.sender);
   });
 
   ipcMain.handle("sendAll", async event => {

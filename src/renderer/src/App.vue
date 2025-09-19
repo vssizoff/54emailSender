@@ -7,9 +7,11 @@ import {Button, Drawer} from "primevue";
 import EmailConfigDialog from "@renderer/components/EmailConfigDialog.vue";
 import TemplateConfig from "@renderer/components/TemplateConfig.vue";
 import TemplateConfigDialog from "@renderer/components/TemplateConfigDialog.vue";
+import ParseDialog from "@renderer/components/ParseDialog.vue";
 
 const emails = ref<Array<Entry>>([]);
 const emailConfig = ref<{emails: Array<EmailConfigType>, selected: number} | null>(null);
+const parseDialogVisible = ref<boolean>(false);
 const emailSelectorVisible = ref<boolean>(false);
 const newEmailEditorVisible = ref<boolean>(false);
 const newEmailConfig = ref<EmailConfigType | null>(null);
@@ -50,10 +52,6 @@ onMounted(async () => {
   templates.value = await window.electron.ipcRenderer.invoke("getTemplates");
 });
 
-function selectFile() {
-  window.electron.ipcRenderer.send("selectFile");
-}
-
 function send() {
   window.electron.ipcRenderer.invoke("sendAll");
 }
@@ -82,7 +80,7 @@ function addTemplate() {
     <h1>Email рассылки</h1>
     <div class="buttons">
       <Button @click="emailSelectorVisible = true">Выбрать отправителя</Button>
-      <Button @click="selectFile">Выбрать таблицу</Button>
+      <Button @click="parseDialogVisible = true">Выбрать таблицу</Button>
       <Button @click="templateSelectorVisible = true">Выбрать шаблон</Button>
       <Button @click="send">Отправить неотправленные</Button>
       <Button @click="rm" severity="danger">Очистить</Button>
@@ -110,6 +108,7 @@ function addTemplate() {
       <TemplateConfig :name="name" :sender="sender" :subject="subject" :index="index" :selected="templates?.selected === index"/>
     </div>
   </Drawer>
+  <ParseDialog v-model:visible="parseDialogVisible"/>
   <EmailConfigDialog v-model:email="newEmailConfig" v-model:visible="newEmailEditorVisible">
     <Button severity="success" @click="addEmailConfig">Добавить</Button>
   </EmailConfigDialog>

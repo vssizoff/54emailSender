@@ -1,5 +1,5 @@
 import { createTransport, type Transporter } from "nodemailer";
-import { type Entry, parse, validate } from "./parse.js";
+import {type Entry, parse, type ParseOptions, validate} from "./parse.js";
 import WebContents = Electron.WebContents;
 import SMTPTransport from "nodemailer/lib/smtp-transport/index.js";
 import type { EmailConfig } from "./emailConfig.js";
@@ -86,8 +86,8 @@ export async function sendEmails(app: WebContents) {
   }
 }
 
-export function setEmails(file: string, app: WebContents) {
-  emails = validate(parse(file)).map(({ valid, ...entry }) => ({ status: valid ? 0 : -1, ...entry }));
+export function setEmails(file: string, options: ParseOptions, app: WebContents) {
+  emails = validate(parse(file, options)).map(({ valid, ...entry }) => ({ status: valid ? 0 : -1, ...entry }));
   app.send("set", emails);
 }
 
