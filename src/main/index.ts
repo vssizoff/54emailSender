@@ -8,6 +8,7 @@ import { addTemplate, editTemplate, getTemplate, getTemplates, removeTemplate, s
 import FileFilter = Electron.FileFilter;
 import * as fs from "node:fs";
 import type {ParseOptions} from "./parse.js";
+import {getLogs} from "./logs.js";
 
 function createWindow(): void {
   // Create the browser window.
@@ -131,6 +132,10 @@ app.whenReady().then(() => {
 
   ipcMain.handle("selectTemplate", (event, index: number) => {
     selectTemplate(index, event.sender);
+  });
+
+  ipcMain.handle("getLogs", () => {
+    return getLogs();
   });
 
   ipcMain.on("readFile", async (_, title: string, filters: Array<FileFilter>) => {

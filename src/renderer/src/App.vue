@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
-import type { EmailConfigType, Entry } from "@renderer/types.js";
+import {onMounted, ref, watch} from "vue";
+import type {EmailConfigType, Entry, LogType} from "@renderer/types.js";
 import Email from "@renderer/components/Email.vue";
 import EmailConfig from "@renderer/components/EmailConfig.vue";
 import {Button, Drawer} from "primevue";
@@ -8,6 +8,7 @@ import EmailConfigDialog from "@renderer/components/EmailConfigDialog.vue";
 import TemplateConfig from "@renderer/components/TemplateConfig.vue";
 import TemplateConfigDialog from "@renderer/components/TemplateConfigDialog.vue";
 import ParseDialog from "@renderer/components/ParseDialog.vue";
+import Log from "@renderer/components/Log.vue";
 
 const emails = ref<Array<Entry>>([]);
 const emailConfig = ref<{emails: Array<EmailConfigType>, selected: number} | null>(null);
@@ -22,6 +23,8 @@ const newTemplateName = ref<string>("");
 const newTemplateSender = ref<string>("Школa №54 <%mailUser%>");
 const newTemplateSubject = ref<string>("");
 const newTemplateData = ref<string>("");
+const logsVisible = ref<boolean>(false);
+const logs = ref<Array<LogType> | null>(null);
 
 onMounted(async () => {
   window.electron.ipcRenderer.on("set", (_, newEmails: Array<Entry>) => emails.value = newEmails);
@@ -73,6 +76,15 @@ function addTemplate() {
   newTemplateSubject.value = "";
   newTemplateData.value = "";
 }
+
+watch(logsVisible, async value => {
+  if (value) {
+    logs.value = await window.electron.ipcRenderer.invoke("getLogs");
+  }
+  else {
+    logs.value = null;
+  }
+});
 </script>
 
 <template>
@@ -84,6 +96,7 @@ function addTemplate() {
       <Button @click="templateSelectorVisible = true">Выбрать шаблон</Button>
       <Button @click="send">Отправить неотправленные</Button>
       <Button @click="rm" severity="danger">Очистить</Button>
+      <Button @click="logsVisible = true">Отправленное</Button>
     </div>
     <p>
       Отправка занимает время. Не нажимайте кнопку "Отправить" несколько раз
@@ -121,6 +134,15 @@ function addTemplate() {
   >
     <Button severity="success" @click="addTemplate">Добавить</Button>
   </TemplateConfigDialog>
+  <Drawer position="right" v-model:visible="logsVisible" :class="$style.drawer">
+    <header class="drawerHeader">
+      <h2>Шаблоны</h2>
+    </header>
+    <template v-if="logs === null">Загрузка</template>
+    <template v-else>
+      <Log v-for="log in logs" :log="log"/>
+    </template>
+  </Drawer>
 </template>
 
 <style scoped>

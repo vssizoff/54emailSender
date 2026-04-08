@@ -4,6 +4,7 @@ import WebContents = Electron.WebContents;
 import SMTPTransport from "nodemailer/lib/smtp-transport/index.js";
 import type { EmailConfig } from "./emailConfig.js";
 import { useTemplate } from "./templates.js";
+import {addLog} from "./logs.js";
 
 let mailUser: string = "";
 export let mailer: Transporter<SMTPTransport.SentMessageInfo, SMTPTransport.Options> | null;
@@ -40,8 +41,15 @@ export async function send(to: string, sender: string, subject: string, message:
     await mailer.sendMail({
       from: sender,
       to,
-      subject: subject,
+      subject,
       html: message
+    });
+    addLog({
+      sender,
+      email: to,
+      subject,
+      message,
+      datetime: (new Date()).toISOString()
     });
     console.log("Success");
     return true;

@@ -15,3 +15,11 @@ export type EmailConfigType = {
   mailSecure: boolean,
   sendsPerHour: number
 };
+
+export type LogType = {
+  email: string,
+  sender: string,
+  subject: string,
+  message: string,
+  datetime: string
+}
