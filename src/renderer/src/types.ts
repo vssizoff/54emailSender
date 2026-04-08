@@ -4,6 +4,7 @@ export type Entry = {
   name3: string,
   email: string,
   status: number
+  uuid: string
 };
 
 export type EmailConfigType = {
@@ -11,5 +12,6 @@ export type EmailConfigType = {
   mailUser: string,
   mailPass: string,
   mailPort: number,
-  mailSecure: boolean
+  mailSecure: boolean,
+  sendsPerHour: number
 };

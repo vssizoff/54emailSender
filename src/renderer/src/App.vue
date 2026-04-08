@@ -25,14 +25,14 @@ const newTemplateData = ref<string>("");
 
 onMounted(async () => {
   window.electron.ipcRenderer.on("set", (_, newEmails: Array<Entry>) => emails.value = newEmails);
-  window.electron.ipcRenderer.on("status", (_, [searchEmail, status]) => {
+  window.electron.ipcRenderer.on("status", (_, [uuid, status]) => {
     emails.value = emails.value.map(entry => {
-      if (entry.email === searchEmail) return {...entry, status};
+      if (entry.uuid === uuid) return {...entry, status};
       return entry;
     });
   });
-  window.electron.ipcRenderer.on("rm", (_, searchEmail) => {
-    emails.value = emails.value.filter(({email}) => email !== searchEmail);
+  window.electron.ipcRenderer.on("rm", (_, uuid) => {
+    emails.value = emails.value.filter(({uuid: id}) => id !== uuid);
   });
   window.electron.ipcRenderer.on("emailConfig", (_, config) => {
     emailConfig.value = config;
@@ -88,7 +88,7 @@ function addTemplate() {
     <p>
       Отправка занимает время. Не нажимайте кнопку "Отправить" несколько раз
     </p>
-    <Email v-for="{email, firstName, lastName, name3, status} in emails" :email="email" :firstName="firstName" :lastName="lastName" :name3="name3" :status="status" class="email"/>
+    <Email v-for="{email, firstName, lastName, name3, status, uuid} in emails" :uuid="uuid" :email="email" :firstName="firstName" :lastName="lastName" :name3="name3" :status="status" class="email"/>
   </main>
   <Drawer position="right" v-model:visible="emailSelectorVisible" :class="$style.drawer">
     <header class="drawerHeader">

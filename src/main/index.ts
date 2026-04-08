@@ -76,16 +76,17 @@ app.whenReady().then(() => {
     await sendEmails(event.sender);
   });
 
-  ipcMain.handle("send", async (event, email: string) => {
-    await sendEmail(email, event.sender);
+  ipcMain.handle("send", async (event, uuid: string) => {
+    event.sender.send("status", [uuid, 2]);
+    await sendEmail(uuid, event.sender);
   });
 
   ipcMain.handle("rmAll", event => {
     rmAll(event.sender);
   });
 
-  ipcMain.handle("rm", (event, email: string) => {
-    rm(email, event.sender);
+  ipcMain.handle("rm", (event, uuid: string) => {
+    rm(uuid, event.sender);
   });
 
   ipcMain.handle("getEmails", () => {

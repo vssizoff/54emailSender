@@ -31,6 +31,7 @@ function rm() {
 }
 
 function editEmailConfig() {
+  console.log(editorEmailConfig.value);
   window.electron.ipcRenderer.invoke("editEmail", props.index, JSON.parse(JSON.stringify(editorEmailConfig.value)));
   editorVisible.value = false;
   editorEmailConfig.value = props.email;

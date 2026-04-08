@@ -21,15 +21,19 @@ const props = defineProps({
   status: {
     type: Number,
     required: true
+  },
+  uuid: {
+    type: String,
+    required: true
   }
 });
 
 function send() {
-  window.electron.ipcRenderer.invoke("send", props.email);
+  window.electron.ipcRenderer.invoke("send", props.uuid);
 }
 
 function rm() {
-  window.electron.ipcRenderer.invoke("rm", props.email);
+  window.electron.ipcRenderer.invoke("rm", props.uuid);
 }
 </script>
 
@@ -38,12 +42,14 @@ function rm() {
     <template #header>
       <div class="header">
         <span class="email">{{email}}</span>
-        <Badge :severity="props.status === -1 ? 'danger' : props.status === 0 ? 'info' : 'success'">{{props.status === -1 ? "Не email" : props.status === 0 ? "Не отправлено" : "Отправлено"}}</Badge>
+        <Badge :severity="props.status < 0 ? 'danger' : props.status === 0 ? 'info' : props.status === 1 ? 'success' : 'warn'">
+          {{props.status === -2 ? "Ошибка при отправке" : props.status === -1 ? "Не email" : props.status === 0 ? "Не отправлено" : props.status === 1 ? "Отправлено" : "Отправляется"}}
+        </Badge>
       </div>
     </template>
     <span class="text">{{props.firstName}} {{props.lastName}} {{props.name3}}</span>
     <div class="buttons">
-      <Button @click="send" v-if="status === 0">Отправить</Button>
+      <Button @click="send" v-if="status === 0 || status === -2">Отправить</Button>
       <Button @click="rm" severity="danger">Удалить</Button>
     </div>
   </Panel>

@@ -7,7 +7,8 @@ export type EmailConfig = {
   mailUser: string,
   mailPass: string,
   mailPort: number,
-  mailSecure: boolean
+  mailSecure: boolean,
+  sendsPerHour: number
 };
 
 let config = get<{emails: Array<EmailConfig>, selected: number}>("emails.json");

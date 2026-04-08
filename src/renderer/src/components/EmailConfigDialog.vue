@@ -18,42 +18,56 @@ const user = ref<string>(props.email?.mailUser ?? ""),
   host = ref<string>(props.email?.mailHost ?? ""),
   pass = ref<string>(props.email?.mailPass ?? ""),
   port = ref<number>(props.email?.mailPort ?? 465),
-  secure = ref<boolean>(props.email?.mailSecure ?? true);
+  secure = ref<boolean>(props.email?.mailSecure ?? true),
+  sendsPerHour = ref<number>(props.email?.sendsPerHour ?? 15);
 
 watch(user, value => emit("update:email", {
   mailUser: value,
   mailHost: host.value,
   mailPass: host.value,
   mailPort: port.value,
-  mailSecure: secure.value
+  mailSecure: secure.value,
+  sendsPerHour: sendsPerHour.value
 }));
 watch(host, value => emit("update:email", {
   mailUser: user.value,
   mailHost: value,
   mailPass: host.value,
   mailPort: port.value,
-  mailSecure: secure.value
+  mailSecure: secure.value,
+  sendsPerHour: sendsPerHour.value
 }));
 watch(pass, value => emit("update:email", {
   mailUser: user.value,
   mailHost: host.value,
   mailPass: value,
   mailPort: port.value,
-  mailSecure: secure.value
+  mailSecure: secure.value,
+  sendsPerHour: sendsPerHour.value
 }));
 watch(port, value => emit("update:email", {
   mailUser: user.value,
   mailHost: host.value,
   mailPass: host.value,
   mailPort: value,
-  mailSecure: secure.value
+  mailSecure: secure.value,
+  sendsPerHour: sendsPerHour.value
 }));
 watch(secure, value => emit("update:email", {
   mailUser: user.value,
   mailHost: host.value,
   mailPass: host.value,
   mailPort: port.value,
-  mailSecure: value
+  mailSecure: value,
+  sendsPerHour: sendsPerHour.value
+}));
+watch(sendsPerHour, value => emit("update:email", {
+  mailUser: user.value,
+  mailHost: host.value,
+  mailPass: pass.value,
+  mailPort: port.value,
+  mailSecure: secure.value,
+  sendsPerHour: value
 }));
 </script>
 
@@ -77,6 +91,10 @@ watch(secure, value => emit("update:email", {
         <label for="port">Port</label>
       </FloatLabel>
       <span class="secure">Secure: <ToggleSwitch v-model="secure"/></span>
+      <FloatLabel variant="on">
+        <InputNumber id="sendsPerHour" v-model="sendsPerHour" autocomplete="off"/>
+        <label for="sendsPerHour">За час автоматически (кнопка "отправить неотправленное") отправлять писем</label>
+      </FloatLabel>
       <slot/>
     </div>
   </Dialog>

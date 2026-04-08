@@ -7,9 +7,11 @@ import { useTemplate } from "./templates.js";
 
 let mailUser: string = "";
 export let mailer: Transporter<SMTPTransport.SentMessageInfo, SMTPTransport.Options> | null;
+let sendTimeout: number = 4 * 60 * 1000;
 
-export function setup({mailHost, mailUser: mailUser_, mailPass, mailPort, mailSecure}: Partial<EmailConfig> = {}) {
-  if (!mailHost || !mailUser_ || !mailPass || mailPort === undefined || mailSecure === undefined) return;
+export function setup({mailHost, mailUser: mailUser_, mailPass, mailPort, mailSecure, sendsPerHour}: Partial<EmailConfig> = {}) {
+  if (!mailHost || !mailUser_ || !mailPass || mailPort === undefined || mailSecure === undefined || sendsPerHour == undefined) return;
+  console.log(arguments);
   mailer = createTransport({
     host: mailHost,
     port: mailPort,
@@ -20,10 +22,14 @@ export function setup({mailHost, mailUser: mailUser_, mailPass, mailPort, mailSe
     },
   });
   mailUser = mailUser_ ?? "";
+  sendTimeout = 60 / sendsPerHour * 60 * 1000;
 }
 
 export async function send(to: string, sender: string, subject: string, message: string) {
-  if (!mailer) return false;
+  if (!mailer) {
+    console.log("Mailer is undefined!");
+    return false;
+  }
   console.log("Sending:", {
     from: sender,
     to,
@@ -47,20 +53,31 @@ export async function send(to: string, sender: string, subject: string, message:
   }
 }
 
-let emails: Array<Entry & {status: number}> = [];
+let emails: Array<Entry> = [];
 
-export async function sendEmail(searchEmail: string, app: WebContents) {
-  let entry = emails.filter(({status, email}) => status === 0 && email === searchEmail)[0];
+export async function sendEmail(uuid: string, app: WebContents) {
+  let entry = emails.filter(({status, uuid: id}) => status === 0 && id === uuid)[0];
+  console.log(uuid);
   if (!entry) return;
   let {firstName, lastName, name3, email} = entry;
   let template = useTemplate({firstName, lastName, name3, email, mailUser});
   if (!template) return;
   let {data, subject, sender} = template;
   let success = await send(email, sender, subject, data);
-  if (!success) return;
-  app.send("status", [email, 1]);
+  if (!success) {
+    app.send("status", [uuid, -2]);
+    emails.map(elem => {
+      if (elem.uuid === uuid) return {
+        firstName, lastName, name3, email,
+        status: -2
+      }
+      return elem;
+    });
+    return;
+  }
+  app.send("status", [uuid, 1]);
   emails.map(elem => {
-    if (elem.email === searchEmail) return {
+    if (elem.uuid === uuid) return {
       firstName, lastName, name3, email,
       status: 1
     }
@@ -68,32 +85,31 @@ export async function sendEmail(searchEmail: string, app: WebContents) {
   });
 }
 
+async function sleep(ms: number) {
+  return new Promise(resolve => setTimeout(() => resolve(undefined), ms));
+}
+
 export async function sendEmails(app: WebContents) {
-  // emails = await Promise.all(emails.filter(({status}) => status === 0).map(async ({firstName, lastName, name3, email}): Promise<Entry & {status: number}> => {
-  //   if (!(await send(email, "test", useTemplate({firstName, lastName, name3, email, mailUser}) ?? ""))) return {
-  //     firstName, lastName, name3, email,
-  //     status: 0
-  //   };
-  //   app.send("status", [email, 1]);
-  //   return {
-  //     firstName, lastName, name3, email,
-  //     status: 1
-  //   };
-  // }));
-  for (const {email, status} of emails) {
+  for (const {uuid, status} of emails) {
     if (status !== 0) continue;
-    await sendEmail(email, app);
+    app.send("status", [uuid, 2]);
+  }
+  emails.map(elem => ({...elem, status: 2}));
+  for (const {uuid, status} of emails) {
+    if (status !== 0) continue;
+    await sendEmail(uuid, app);
+    await sleep(sendTimeout);
   }
 }
 
 export function setEmails(file: string, options: ParseOptions, app: WebContents) {
-  emails = validate(parse(file, options)).map(({ valid, ...entry }) => ({ status: valid ? 0 : -1, ...entry }));
+  emails = validate(parse(file, options)).map(({ valid, ...entry }) => ({ uuid: crypto.randomUUID(), status: valid ? 0 : -1, ...entry }));
   app.send("set", emails);
 }
 
-export function rm(searchEmail: string, app: WebContents) {
-  emails = emails.filter(({email}) => email !== searchEmail);
-  app.send("rm", searchEmail);
+export function rm(uuid: string, app: WebContents) {
+  emails = emails.filter(({uuid: id}) => id !== uuid);
+  app.send("rm", uuid);
 }
 
 export function rmAll(app: WebContents) {

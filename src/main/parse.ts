@@ -14,7 +14,9 @@ export type Entry = {
   lastName: string,
   name3: string,
   email: string,
-  columns: Record<string, any>
+  columns: Record<string, any>,
+  status: number,
+  uuid: string
 };
 
 function parseKey(key: string): [string, number] {
@@ -26,7 +28,7 @@ function parseKey(key: string): [string, number] {
   return [column, Number(key.substring(i))];
 }
 
-export function parse(file: string, options: ParseOptions): Array<Entry> {
+export function parse(file: string, options: ParseOptions): Array<Omit<Entry, "uuid" | "status">> {
   const workbook = XLSX.readFile(file);
   const sheet = workbook.Sheets[workbook.SheetNames[0]];
   let firstNames = new Map<number, string>,
@@ -55,7 +57,7 @@ export function parse(file: string, options: ParseOptions): Array<Entry> {
     }
   });
   let max = Math.max(...Array.from(firstNames.keys()), ...Array.from(lastNames.keys()), ...Array.from(names3.keys()), ...Array.from(emails.keys()));
-  let ret: Array<Entry> = [];
+  let ret: Array<Omit<Entry, "uuid" | "status">> = [];
   for (let i = 1; i <= max; i++) {
     if (!firstNames.has(i) || !lastNames.has(i) || (!names3.has(i) && !options.canName3Empty) || !emails.has(i)) continue;
     ret.push({
@@ -69,7 +71,7 @@ export function parse(file: string, options: ParseOptions): Array<Entry> {
   return ret;
 }
 
-export function validate(array: Array<Entry>): Array<Entry & {valid: boolean}> {
+export function validate(array: Array<Omit<Entry, "uuid" | "status">>): Array<Omit<Entry, "uuid" | "status"> & {valid: boolean}> {
   return array.map(entry => ({
     ...entry,
     valid: /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/.test(entry.email)
