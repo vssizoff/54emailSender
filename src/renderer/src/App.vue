@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import {onMounted, ref, watch} from "vue";
-import type {EmailConfigType, Entry, LogType} from "@renderer/types.js";
+import { onMounted, ref, watch } from "vue";
+import type { EmailConfigType, Entry, LogType } from "@renderer/types.js";
 import Email from "@renderer/components/Email.vue";
 import EmailConfig from "@renderer/components/EmailConfig.vue";
-import {Button, Drawer} from "primevue";
+import { Button, Drawer } from "primevue";
 import EmailConfigDialog from "@renderer/components/EmailConfigDialog.vue";
 import TemplateConfig from "@renderer/components/TemplateConfig.vue";
 import TemplateConfigDialog from "@renderer/components/TemplateConfigDialog.vue";
@@ -11,12 +11,12 @@ import ParseDialog from "@renderer/components/ParseDialog.vue";
 import Log from "@renderer/components/Log.vue";
 
 const emails = ref<Array<Entry>>([]);
-const emailConfig = ref<{emails: Array<EmailConfigType>, selected: number} | null>(null);
+const emailConfig = ref<{ emails: Array<EmailConfigType>, selected: number } | null>(null);
 const parseDialogVisible = ref<boolean>(false);
 const emailSelectorVisible = ref<boolean>(false);
 const newEmailEditorVisible = ref<boolean>(false);
 const newEmailConfig = ref<EmailConfigType | null>(null);
-const templates = ref<{templates: Array<{name: string, sender: string, subject: string, data: string}>, selected: number} | null>(null);
+const templates = ref<{ templates: Array<{ name: string, sender: string, subject: string, data: string }>, selected: number } | null>(null);
 const templateSelectorVisible = ref<boolean>(false);
 const newTemplateEditorVisible = ref<boolean>(false);
 const newTemplateName = ref<string>("");
@@ -30,12 +30,12 @@ onMounted(async () => {
   window.electron.ipcRenderer.on("set", (_, newEmails: Array<Entry>) => emails.value = newEmails);
   window.electron.ipcRenderer.on("status", (_, [uuid, status]) => {
     emails.value = emails.value.map(entry => {
-      if (entry.uuid === uuid) return {...entry, status};
+      if (entry.uuid === uuid) return { ...entry, status };
       return entry;
     });
   });
   window.electron.ipcRenderer.on("rm", (_, uuid) => {
-    emails.value = emails.value.filter(({uuid: id}) => id !== uuid);
+    emails.value = emails.value.filter(({ uuid: id }) => id !== uuid);
   });
   window.electron.ipcRenderer.on("emailConfig", (_, config) => {
     emailConfig.value = config;
@@ -79,7 +79,7 @@ function addTemplate() {
 
 watch(logsVisible, async value => {
   if (value) {
-    logs.value = await window.electron.ipcRenderer.invoke("getLogs");
+    logs.value = (await window.electron.ipcRenderer.invoke("getLogs")).reverse();
   }
   else {
     logs.value = null;
@@ -101,7 +101,8 @@ watch(logsVisible, async value => {
     <p>
       Отправка занимает время. Не нажимайте кнопку "Отправить" несколько раз
     </p>
-    <Email v-for="{email, firstName, lastName, name3, status, uuid} in emails" :uuid="uuid" :email="email" :firstName="firstName" :lastName="lastName" :name3="name3" :status="status" class="email"/>
+    <Email v-for="{ email, firstName, lastName, name3, status, uuid } in emails" :uuid="uuid" :email="email"
+      :firstName="firstName" :lastName="lastName" :name3="name3" :status="status" class="email" />
   </main>
   <Drawer position="right" v-model:visible="emailSelectorVisible" :class="$style.drawer">
     <header class="drawerHeader">
@@ -109,7 +110,7 @@ watch(logsVisible, async value => {
       <Button @click="newEmailEditorVisible = true">Добавить</Button>
     </header>
     <div v-for="(email, index) in emailConfig?.emails ?? []" class="drawerEntry">
-      <EmailConfig :email="email" :index="index" :selected="emailConfig?.selected === index"/>
+      <EmailConfig :email="email" :index="index" :selected="emailConfig?.selected === index" />
     </div>
   </Drawer>
   <Drawer position="right" v-model:visible="templateSelectorVisible" :class="$style.drawer">
@@ -117,30 +118,26 @@ watch(logsVisible, async value => {
       <h2>Шаблоны</h2>
       <Button @click="newTemplateEditorVisible = true">Добавить</Button>
     </header>
-    <div v-for="({name, sender, subject}, index) in templates?.templates ?? []" class="drawerEntry">
-      <TemplateConfig :name="name" :sender="sender" :subject="subject" :index="index" :selected="templates?.selected === index"/>
+    <div v-for="({ name, sender, subject }, index) in templates?.templates ?? []" class="drawerEntry">
+      <TemplateConfig :name="name" :sender="sender" :subject="subject" :index="index"
+        :selected="templates?.selected === index" />
     </div>
   </Drawer>
-  <ParseDialog v-model:visible="parseDialogVisible"/>
+  <ParseDialog v-model:visible="parseDialogVisible" />
   <EmailConfigDialog v-model:email="newEmailConfig" v-model:visible="newEmailEditorVisible">
     <Button severity="success" @click="addEmailConfig">Добавить</Button>
   </EmailConfigDialog>
-  <TemplateConfigDialog
-    v-model:name="newTemplateName"
-    v-model:sender="newTemplateSender"
-    v-model:subject="newTemplateSubject"
-    v-model:data="newTemplateData"
-    v-model:visible="newTemplateEditorVisible"
-  >
+  <TemplateConfigDialog v-model:name="newTemplateName" v-model:sender="newTemplateSender"
+    v-model:subject="newTemplateSubject" v-model:data="newTemplateData" v-model:visible="newTemplateEditorVisible">
     <Button severity="success" @click="addTemplate">Добавить</Button>
   </TemplateConfigDialog>
   <Drawer position="right" v-model:visible="logsVisible" :class="$style.drawer">
     <header class="drawerHeader">
-      <h2>Шаблоны</h2>
+      <h2>Отправленное</h2>
     </header>
     <template v-if="logs === null">Загрузка</template>
     <template v-else>
-      <Log v-for="log in logs" :log="log"/>
+      <Log v-for="log in logs" :log="log" class="log" />
     </template>
   </Drawer>
 </template>
@@ -167,6 +164,10 @@ main {
 
 .drawerEntry {
   margin-top: 20px;
+}
+
+.log {
+  margin-top: 10px;
 }
 </style>
 

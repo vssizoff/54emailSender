@@ -1,0 +1,6 @@
+.idea/
+.~lock.test.xlsx#
+bun.lock
+node_modules/
+out/
+test.xlsx
