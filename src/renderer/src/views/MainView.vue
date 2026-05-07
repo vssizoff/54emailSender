@@ -1,0 +1,188 @@
+<script setup lang="ts">
+import { onMounted, ref, watch } from "vue";
+import type { EmailConfigType, Entry, LogType } from "@renderer/types.js";
+import Email from "@renderer/components/Email.vue";
+import EmailConfig from "@renderer/components/EmailConfig.vue";
+import {Button, Drawer} from "primevue";
+import EmailConfigDialog from "@renderer/components/EmailConfigDialog.vue";
+import TemplateConfig from "@renderer/components/TemplateConfig.vue";
+import TemplateConfigDialog from "@renderer/components/TemplateConfigDialog.vue";
+import ParseDialog from "@renderer/components/ParseDialog.vue";
+import Log from "@renderer/components/Log.vue";
+
+const emails = ref<Array<Entry>>([]);
+const emailConfig = ref<{ emails: Array<EmailConfigType>, selected: number } | null>(null);
+const parseDialogVisible = ref<boolean>(false);
+const emailSelectorVisible = ref<boolean>(false);
+const newEmailEditorVisible = ref<boolean>(false);
+const newEmailConfig = ref<EmailConfigType | null>(null);
+const templates = ref<{ templates: Array<{ name: string, sender: string, subject: string, data: string }>, selected: number } | null>(null);
+const templateSelectorVisible = ref<boolean>(false);
+const newTemplateEditorVisible = ref<boolean>(false);
+const newTemplateName = ref<string>("");
+const newTemplateSender = ref<string>("Школa №54 <%mailUser%>");
+const newTemplateSubject = ref<string>("");
+const newTemplateData = ref<string>("");
+const logsVisible = ref<boolean>(false);
+const logs = ref<Array<LogType> | null>(null);
+
+onMounted(async () => {
+  window.electron.ipcRenderer.on("set", (_, newEmails: Array<Entry>) => emails.value = newEmails);
+  window.electron.ipcRenderer.on("status", (_, [uuid, status]) => {
+    emails.value = emails.value.map(entry => {
+      if (entry.uuid === uuid) return { ...entry, status };
+      return entry;
+    });
+  });
+  window.electron.ipcRenderer.on("rm", (_, uuid) => {
+    emails.value = emails.value.filter(({ uuid: id }) => id !== uuid);
+  });
+  window.electron.ipcRenderer.on("emailConfig", (_, config) => {
+    emailConfig.value = config;
+  });
+  window.electron.ipcRenderer.on("emailsConfig.select", (_, index) => {
+    if (!emailConfig.value) return;
+    emailConfig.value.selected = index;
+  });
+  window.electron.ipcRenderer.on("templates", (_, newTemplates) => {
+    templates.value = newTemplates;
+  });
+  window.electron.ipcRenderer.on("templates.select", (_, index) => {
+    if (!templates.value) return;
+    templates.value.selected = index;
+  });
+  emailConfig.value = await window.electron.ipcRenderer.invoke("getEmails");
+  templates.value = await window.electron.ipcRenderer.invoke("getTemplates");
+});
+
+function send() {
+  window.electron.ipcRenderer.invoke("sendAll");
+}
+
+function rm() {
+  window.electron.ipcRenderer.invoke("rmAll");
+}
+
+function addEmailConfig() {
+  window.electron.ipcRenderer.invoke("addEmail", JSON.parse(JSON.stringify(newEmailConfig.value)));
+  newEmailEditorVisible.value = false;
+}
+
+function addTemplate() {
+  window.electron.ipcRenderer.invoke("addTemplate", newTemplateName.value, newTemplateSender.value, newTemplateSubject.value, newTemplateData.value);
+  newTemplateEditorVisible.value = false;
+  newTemplateName.value = "";
+  newTemplateSender.value = "Школa №54 <%mailUser%>";
+  newTemplateSubject.value = "";
+  newTemplateData.value = "";
+}
+
+function openTemplateEditor() {
+  // window.electron.ipcRenderer.invoke("getTemplate", props.index).then(data => {
+  //   if (typeof data !== "string") return;
+  //   editorData.value = data;
+  //   editorVisible.value = true;
+  // });
+  window.electron.ipcRenderer.invoke("createTemplateEditorWindow", -1);
+}
+
+watch(logsVisible, async value => {
+  if (value) {
+    logs.value = (await window.electron.ipcRenderer.invoke("getLogs")).reverse();
+  }
+  else {
+    logs.value = null;
+  }
+});
+</script>
+
+<template>
+  <main>
+    <h1>Email рассылки</h1>
+    <div class="buttons">
+      <Button @click="emailSelectorVisible = true">Выбрать отправителя</Button>
+      <Button @click="parseDialogVisible = true">Выбрать таблицу</Button>
+      <Button @click="templateSelectorVisible = true">Выбрать шаблон</Button>
+      <Button @click="send">Отправить неотправленные</Button>
+      <Button @click="rm" severity="danger">Очистить</Button>
+      <Button @click="logsVisible = true">Отправленное</Button>
+    </div>
+    <p>
+      Отправка занимает время. Не нажимайте кнопку "Отправить" несколько раз
+    </p>
+    <Email v-for="{ email, firstName, lastName, name3, status, uuid } in emails" :uuid="uuid" :email="email"
+           :firstName="firstName" :lastName="lastName" :name3="name3" :status="status" class="email" />
+  </main>
+  <Drawer position="right" v-model:visible="emailSelectorVisible" :class="$style.drawer">
+    <header class="drawerHeader">
+      <h2>Email configs</h2>
+      <Button @click="newEmailEditorVisible = true">Добавить</Button>
+    </header>
+    <div v-for="(email, index) in emailConfig?.emails ?? []" class="drawerEntry">
+      <EmailConfig :email="email" :index="index" :selected="emailConfig?.selected === index" />
+    </div>
+  </Drawer>
+  <Drawer position="right" v-model:visible="templateSelectorVisible" :class="$style.drawer">
+    <header class="drawerHeader">
+      <h2>Шаблоны</h2>
+      <Button @click="openTemplateEditor">Добавить</Button>
+    </header>
+    <div v-for="({ name, sender, subject }, index) in templates?.templates ?? []" class="drawerEntry">
+      <TemplateConfig :name="name" :sender="sender" :subject="subject" :index="index"
+                      :selected="templates?.selected === index" />
+    </div>
+  </Drawer>
+  <ParseDialog v-model:visible="parseDialogVisible" />
+  <EmailConfigDialog v-model:email="newEmailConfig" v-model:visible="newEmailEditorVisible">
+    <Button severity="success" @click="addEmailConfig">Добавить</Button>
+  </EmailConfigDialog>
+  <TemplateConfigDialog v-model:name="newTemplateName" v-model:sender="newTemplateSender"
+                        v-model:subject="newTemplateSubject" v-model:data="newTemplateData" v-model:visible="newTemplateEditorVisible">
+    <Button severity="success" @click="addTemplate">Добавить</Button>
+  </TemplateConfigDialog>
+  <Drawer position="right" v-model:visible="logsVisible" :class="$style.drawer">
+    <header class="drawerHeader">
+      <h2>Отправленное</h2>
+    </header>
+    <template v-if="logs === null">Загрузка</template>
+    <template v-else>
+      <Log v-for="log in logs" :log="log" class="log" />
+    </template>
+  </Drawer>
+</template>
+
+<style scoped>
+main {
+  text-align: center;
+}
+
+.buttons {
+  display: flex;
+  gap: 20px;
+}
+
+.email {
+  margin-top: 20px;
+}
+
+.drawerHeader {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.drawerEntry {
+  margin-top: 20px;
+}
+
+.log {
+  margin-top: 10px;
+}
+</style>
+
+<style module>
+.drawer {
+  width: 600px !important;
+  max-width: 80dvw !important;
+}
+</style>

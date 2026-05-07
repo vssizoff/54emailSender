@@ -4,11 +4,63 @@ import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { rm, rmAll, sendEmail, sendEmails, setEmails } from "./email.js";
 import { addEmail, editEmail, type EmailConfig, getEmails, removeEmail, selectEmail } from "./emailConfig.js";
-import { addTemplate, editTemplate, getTemplate, getTemplates, removeTemplate, selectTemplate } from "./templates.js";
+import {
+    addTemplate,
+    editTemplate,
+    getFullTemplate,
+    getTemplate,
+    getTemplates,
+    removeTemplate,
+    selectTemplate
+} from "./templates.js";
 import FileFilter = Electron.FileFilter;
 import * as fs from "node:fs";
 import type {ParseOptions} from "./parse.js";
+import {format} from "node:url";
 import {getLogs} from "./logs.js";
+
+let secondaryWindows: Array<BrowserWindow> = [];
+
+function createTemplateEditorWindow(index: number): void {
+    // Create the browser window.
+    const window = new BrowserWindow({
+        show: false,
+        autoHideMenuBar: true,
+        ...(process.platform === 'linux' ? { icon } : {}),
+        webPreferences: {
+            preload: join(__dirname, '../preload/index.js'),
+            sandbox: false,
+            nodeIntegration: true,
+            contextIsolation: false,
+            webSecurity: false
+        },
+        title: "Редактирование шаблона"
+    })
+
+    window.on('ready-to-show', () => {
+        window.show()
+    })
+
+    window.webContents.setWindowOpenHandler((details) => {
+        shell.openExternal(details.url)
+        return { action: 'deny' }
+    })
+
+    const route = `template/${index}`;
+
+    const url = is.dev && process.env.ELECTRON_RENDERER_URL
+        ? `${process.env.ELECTRON_RENDERER_URL}#${route}`
+        : format({
+            pathname: join(__dirname, '../renderer/index.html'),
+            protocol: 'file:',
+            hash: route,
+            slashes: true,
+        })
+
+    window.loadURL(url)
+
+    secondaryWindows.push(window);
+}
 
 function createWindow(): void {
   // Create the browser window.
@@ -118,16 +170,16 @@ app.whenReady().then(() => {
     return getTemplates();
   });
 
-  ipcMain.handle("addTemplate", (event, name: string, sender: string, subject: string, data: string) => {
-    addTemplate(name, sender, subject, data, event.sender);
+  ipcMain.handle("addTemplate", (event, name: string, sender: string, subject: string, data: string, staticVars: Record<string, string>, tableVars: Record<string, string>) => {
+    addTemplate(name, sender, subject, data, staticVars, tableVars, event.sender);
   });
 
   ipcMain.handle("removeTemplate", (event, index: number) => {
     removeTemplate(index, event.sender);
   });
 
-  ipcMain.handle("editTemplate", (event, index: number, name: string, sender: string, subject: string, data: string) => {
-    editTemplate(index, name, sender, subject, data, event.sender);
+  ipcMain.handle("editTemplate", (event, index: number, name: string, sender: string, subject: string, data: string, staticVars: Record<string, string>, tableVars: Record<string, string>) => {
+    editTemplate(index, name, sender, subject, data, staticVars, tableVars, event.sender);
   });
 
   ipcMain.handle("selectTemplate", (event, index: number) => {
@@ -145,6 +197,14 @@ app.whenReady().then(() => {
     });
     if (file.canceled) return;
     return fs.readFileSync(file.filePaths[0]);
+  });
+
+  ipcMain.handle("createTemplateEditorWindow", (_, index: number) => {
+      createTemplateEditorWindow(index);
+  });
+
+  ipcMain.handle("getFullTemplate", (_, index: number) => {
+      return getFullTemplate(index);
   });
 
   createWindow()

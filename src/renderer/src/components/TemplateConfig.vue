@@ -50,11 +50,12 @@ function editEmailConfig() {
 }
 
 function openEditor() {
-  window.electron.ipcRenderer.invoke("getTemplate", props.index).then(data => {
-    if (typeof data !== "string") return;
-    editorData.value = data;
-    editorVisible.value = true;
-  });
+  // window.electron.ipcRenderer.invoke("getTemplate", props.index).then(data => {
+  //   if (typeof data !== "string") return;
+  //   editorData.value = data;
+  //   editorVisible.value = true;
+  // });
+  window.electron.ipcRenderer.invoke("createTemplateEditorWindow", props.index);
 }
 
 watch(props, value => {

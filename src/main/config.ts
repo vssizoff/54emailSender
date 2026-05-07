@@ -39,5 +39,6 @@ export function set(file: string, data: object | number | string | null) {
 }
 
 export function remove(file: string) {
+  file = path.join(configDir, file);
   fs.rmSync(file);
 }
