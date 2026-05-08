@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {useRoute} from "vue-router";
 import {onMounted, onUnmounted, ref} from "vue";
-import {FloatLabel, InputText, Button, ColorPicker} from "primevue";
+import {FloatLabel, InputText, Button, ColorPicker, Dialog} from "primevue";
 
 import { useEditor, EditorContent } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
@@ -10,6 +10,7 @@ import Image from '@tiptap/extension-image'
 import {TextStyle} from '@tiptap/extension-text-style'
 import Color from '@tiptap/extension-color'
 import TextAlign from '@tiptap/extension-text-align'
+import Link from '@tiptap/extension-link'
 
 import boldIcon from "@renderer/assets/bold.svg";
 import italicIcon from "@renderer/assets/italic.svg";
@@ -22,7 +23,7 @@ import bulletListIcon from "@renderer/assets/bulletList.svg";
 import orderedListIcon from "@renderer/assets/orderedList.svg";
 import quoteIcon from "@renderer/assets/quote.svg";
 import linkIcon from "@renderer/assets/link.svg";
-import imageIcon from "@renderer/assets/image.svg";
+// import imageIcon from "@renderer/assets/image.svg";
 import colorIcon from "@renderer/assets/color.svg";
 import textAlignLeftIcon from "@renderer/assets/textAlignLeft.svg";
 import textAlignCenterIcon from "@renderer/assets/textAlignCenter.svg";
@@ -39,6 +40,9 @@ const subject = ref("");
 const content = ref("");
 const staticVars = ref<Record<string, string>>({});
 const tableVars = ref<Record<string, string>>({});
+
+const urlDialogVisible = ref(false);
+const url = ref("");
 
 const editor = useEditor({
   content: '<p>Напишите email...</p>',
@@ -72,7 +76,8 @@ const editor = useEditor({
     }),
     TextAlign.configure({
       types: ['heading', 'paragraph', 'blockquote']
-    })
+    }),
+    Link.configure({})
   ],
   onUpdate: ({ editor }) => {
     content.value = editor.getHTML();
@@ -103,8 +108,7 @@ const setHeading = (level) => {
   editor.value?.chain().focus().toggleHeading({ level }).run()
 }
 
-const setLink = () => {
-  const url = prompt('URL ссылки:')
+const setLink = (url) => {
   if (url) {
     editor.value?.chain().focus().extendMarkRange('link').setLink({ href: url }).run()
   }
@@ -227,12 +231,12 @@ function close() {
           </Button>
 
           <!-- Ссылки и изображения -->
-          <Button @click="setLink" :disabled="!editor?.isActive('link')">
+          <Button @click="urlDialogVisible = true">
             <img :src="linkIcon" alt="link"/>
           </Button>
-          <Button @click="insertImage">
+<!--          <Button @click="insertImage">
             <img :src="imageIcon" alt="image"/>
-          </Button>
+          </Button>-->
 
           <!-- Цвета -->
           <Button @click="setTextColor(color)">
@@ -271,6 +275,12 @@ function close() {
         <EditorContent :editor="editor" class="editor-content"/>
       </div>
     </div>
+    <Dialog v-model:visible="urlDialogVisible" header="Введите ссылку">
+      <div class="urlDialog">
+        <InputText v-model="url"/>
+        <Button @click="urlDialogVisible = false; setLink(url)">OK</Button>
+      </div>
+    </Dialog>
   </main>
 </template>
 
@@ -320,6 +330,9 @@ main {
 
 .editor-content {
   flex: 1;
+  background: white;
+  border-radius: 20px;
+  padding: 10px;
 }
 
 .editor-content :deep(.tiptap) {
@@ -329,11 +342,20 @@ main {
   :deep(strong) {
     font-weight: bold;
   }
+
+  :deep(blockquote) {
+    border-left: 3px solid gray;
+    margin: 1.5rem 0;
+    padding-left: 1rem;
+  }
+
+  :deep(*) {
+    color: black;
+  }
 }
 
 .toolbar {
   padding: 8px;
-  border-bottom: 1px solid #eee;
 }
 .toolbar button {
   margin-right: 8px;
@@ -349,6 +371,12 @@ main {
   bottom: 20px;
 
   display: flex;
+  gap: 10px;
+}
+
+.urlDialog {
+  display: flex;
+  flex-direction: column;
   gap: 10px;
 }
 </style>
