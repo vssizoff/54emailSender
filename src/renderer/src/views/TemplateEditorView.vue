@@ -11,6 +11,25 @@ import {TextStyle} from '@tiptap/extension-text-style'
 import Color from '@tiptap/extension-color'
 import TextAlign from '@tiptap/extension-text-align'
 
+import boldIcon from "@renderer/assets/bold.svg";
+import italicIcon from "@renderer/assets/italic.svg";
+import underlineIcon from "@renderer/assets/underline.svg";
+import strikethroughIcon from "@renderer/assets/strikethrough.svg";
+import heading1Icon from "@renderer/assets/heading1.svg";
+import heading2Icon from "@renderer/assets/heading2.svg";
+import heading3Icon from "@renderer/assets/heading3.svg";
+import bulletListIcon from "@renderer/assets/bulletList.svg";
+import orderedListIcon from "@renderer/assets/orderedList.svg";
+import quoteIcon from "@renderer/assets/quote.svg";
+import linkIcon from "@renderer/assets/link.svg";
+import imageIcon from "@renderer/assets/image.svg";
+import colorIcon from "@renderer/assets/color.svg";
+import textAlignLeftIcon from "@renderer/assets/textAlignLeft.svg";
+import textAlignCenterIcon from "@renderer/assets/textAlignCenter.svg";
+import textAlignRightIcon from "@renderer/assets/textAlignRight.svg";
+import undoIcon from "@renderer/assets/undo.svg";
+import redoIcon from "@renderer/assets/redo.svg";
+
 const route = useRoute();
 const index = ref(0);
 
@@ -98,9 +117,11 @@ const insertImage = () => {
   }
 }
 
+const color = ref("000")
+
 const setTextColor = (color) => {
   if (color) {
-    editor.value?.chain().focus().setColor(color).run()
+    editor.value?.chain().focus().setColor("#" + color).run()
   }
 }
 
@@ -169,70 +190,82 @@ function close() {
         <div class="toolbar">
           <!-- Текст -->
           <Button @click="editor?.chain().focus().toggleBold().run()" :class="{ active: editor?.isActive('bold') }">
-            <strong>B</strong>
+            <img :src="boldIcon" alt="bold"/>
           </Button>
           <Button @click="editor?.chain().focus().toggleItalic().run()" :class="{ active: editor?.isActive('italic') }">
-            <em>I</em>
+            <img :src="italicIcon" alt="italic"/>
           </Button>
           <Button @click="editor?.chain().focus().toggleStrike().run()" :class="{ active: editor?.isActive('strike') }">
-            <s>S</s>
+            <img :src="strikethroughIcon" alt="strikethrough"/>
+          </Button>
+          <Button @click="editor?.chain().focus().toggleUnderline().run()" :class="{ active: editor?.isActive('underline') }">
+            <img :src="underlineIcon" alt="underline"/>
           </Button>
 
           <!-- Заголовки -->
-          <Button @click="setHeading(1)" :class="{ active: editor?.isActive('heading', { level: 1 }) }">H1</Button>
-          <Button @click="setHeading(2)" :class="{ active: editor?.isActive('heading', { level: 2 }) }">H2</Button>
-          <Button @click="setHeading(3)" :class="{ active: editor?.isActive('heading', { level: 3 }) }">H3</Button>
+          <Button @click="setHeading(1)" :class="{ active: editor?.isActive('heading', { level: 1 }) }">
+            <img :src="heading1Icon" alt="heading1"/>
+          </Button>
+          <Button @click="setHeading(2)" :class="{ active: editor?.isActive('heading', { level: 2 }) }">
+            <img :src="heading2Icon" alt="heading2"/>
+          </Button>
+          <Button @click="setHeading(3)" :class="{ active: editor?.isActive('heading', { level: 3 }) }">
+            <img :src="heading3Icon" alt="heading3"/>
+          </Button>
 
           <!-- Списки -->
           <Button @click="editor?.chain().focus().toggleBulletList().run()" :class="{ active: editor?.isActive('bulletList') }">
-            •
+            <img :src="bulletListIcon" alt="bulletList"/>
           </Button>
           <Button @click="editor?.chain().focus().toggleOrderedList().run()" :class="{ active: editor?.isActive('orderedList') }">
-            1.
+            <img :src="orderedListIcon" alt="orderedList"/>
           </Button>
 
           <!-- Блок -->
           <Button @click="editor?.chain().focus().toggleBlockquote().run()" :class="{ active: editor?.isActive('blockquote') }">
-            »
+            <img :src="quoteIcon" alt="quote"/>
           </Button>
 
           <!-- Ссылки и изображения -->
           <Button @click="setLink" :disabled="!editor?.isActive('link')">
-            🔗
+            <img :src="linkIcon" alt="link"/>
           </Button>
           <Button @click="insertImage">
-            🖼️
+            <img :src="imageIcon" alt="image"/>
           </Button>
 
           <!-- Цвета -->
-          <ColorPicker @update:modelValue="setTextColor"/>
+          <Button @click="setTextColor(color)">
+            <img :src="colorIcon" alt="color"/>
+            <ColorPicker v-model="color"/>
+          </Button>
 
           <!-- Выравнивание -->
           <Button
               @click="setTextAlign('left')"
               :class="{ active: editor?.isActive({ textAlign: 'left' }) }"
               title="Выровнять слева">
-            <span>Л</span>
+            <img :src="textAlignLeftIcon" alt="left"/>
           </Button>
           <Button
               @click="setTextAlign('center')"
               :class="{ active: editor?.isActive({ textAlign: 'center' }) }"
               title="По центру">
-            <span>Ц</span>
+            <img :src="textAlignCenterIcon" alt="center"/>
           </Button>
           <Button
               @click="setTextAlign('right')"
               :class="{ active: editor?.isActive({ textAlign: 'right' }) }"
               title="По правому краю">
-            <span>П</span>
+            <img :src="textAlignRightIcon" alt="right"/>
           </Button>
 
           <!-- Undo/Redo -->
           <Button @click="editor?.chain().focus().undo().run()" :disabled="!editor?.can().undo()">
-            ↶
+            <img :src="undoIcon" alt="undo"/>
           </Button>
           <Button @click="editor?.chain().focus().redo().run()" :disabled="!editor?.can().redo()">
-            ↷
+            <img :src="redoIcon" alt="redo"/>
           </Button>
         </div>
         <EditorContent :editor="editor" class="editor-content"/>
@@ -276,10 +309,6 @@ main {
     flex-direction: column;
     gap: 10px;
     height: 100%;
-
-    .textarea {
-      height: 100%;
-    }
   }
 }
 
