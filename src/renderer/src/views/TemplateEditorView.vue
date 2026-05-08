@@ -6,9 +6,9 @@ import {FloatLabel, InputText, Button, ColorPicker, Dialog, InputNumber} from "p
 import { useEditor, EditorContent } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
 import Image from '@tiptap/extension-image'
-import {TextStyle} from '@tiptap/extension-text-style'
 import TextAlign from '@tiptap/extension-text-align'
 import { TextStyleKit } from '@tiptap/extension-text-style'
+import { Placeholder } from '@tiptap/extensions'
 
 import boldIcon from "@renderer/assets/bold.svg";
 import italicIcon from "@renderer/assets/italic.svg";
@@ -44,7 +44,6 @@ const urlDialogVisible = ref(false);
 const url = ref("");
 
 const editor = useEditor({
-  content: '<p>Напишите email...</p>',
   extensions: [
     StarterKit.configure({}),
     Image.configure({
@@ -54,10 +53,12 @@ const editor = useEditor({
         class: 'email-img'
       }
     }),
-    TextStyle,
     TextStyleKit,
     TextAlign.configure({
       types: ['heading', 'paragraph', 'blockquote']
+    }),
+    Placeholder.configure({
+      placeholder: "Напишите email..."
     })
   ],
   onUpdate: ({ editor }) => {
@@ -328,6 +329,14 @@ main {
 
   :deep(*) {
     color: black;
+  }
+
+  :deep(p.is-editor-empty:first-child::before ){
+    color: gray;
+    content: attr(data-placeholder);
+    float: left;
+    height: 0;
+    pointer-events: none;
   }
 }
 
