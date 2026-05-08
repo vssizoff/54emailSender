@@ -166,15 +166,6 @@ function close() {
         %email% - Email получателя<br>
         %mailUser% - Email отправителя<br>
       </p>
-      <h4 class="staticVarsLabel">Свои переменные (например, дата):</h4>
-      <table class="staticVars">
-        <tbody>
-          <tr>
-            <th>Имя</th>
-            <th>Значение</th>
-          </tr>
-        </tbody>
-      </table>
       <div class="buttons">
         <Button @click="editEmailConfig">Сохранить</Button>
         <Button @click="close" severity="danger">Закрыть</Button>
