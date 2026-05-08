@@ -1,16 +1,14 @@
 <script setup lang="ts">
 import {useRoute} from "vue-router";
 import {onMounted, onUnmounted, ref} from "vue";
-import {FloatLabel, InputText, Button, ColorPicker, Dialog} from "primevue";
+import {FloatLabel, InputText, Button, ColorPicker, Dialog, InputNumber} from "primevue";
 
 import { useEditor, EditorContent } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
-import Mention from '@tiptap/extension-mention'
 import Image from '@tiptap/extension-image'
 import {TextStyle} from '@tiptap/extension-text-style'
-import Color from '@tiptap/extension-color'
 import TextAlign from '@tiptap/extension-text-align'
-import Link from '@tiptap/extension-link'
+import { TextStyleKit } from '@tiptap/extension-text-style'
 
 import boldIcon from "@renderer/assets/bold.svg";
 import italicIcon from "@renderer/assets/italic.svg";
@@ -30,6 +28,7 @@ import textAlignCenterIcon from "@renderer/assets/textAlignCenter.svg";
 import textAlignRightIcon from "@renderer/assets/textAlignRight.svg";
 import undoIcon from "@renderer/assets/undo.svg";
 import redoIcon from "@renderer/assets/redo.svg";
+import fontIcon from "@renderer/assets/font.svg";
 
 const route = useRoute();
 const index = ref(0);
@@ -48,21 +47,6 @@ const editor = useEditor({
   content: '<p>Напишите email...</p>',
   extensions: [
     StarterKit.configure({}),
-    Mention.configure({
-      suggestion: {
-        items: ({ query }) => {
-          // переменные для email шаблонов
-          const variables = [
-            { id: 'userName', label: '{{userName}}' },
-            { id: 'company', label: '{{company}}' },
-            { id: 'date', label: '{{date}}' }
-          ]
-          return variables.filter(item =>
-              item.label.toLowerCase().includes(query.toLowerCase())
-          )
-        }
-      }
-    }),
     Image.configure({
       allowBase64: true,
       inline: true,
@@ -71,13 +55,10 @@ const editor = useEditor({
       }
     }),
     TextStyle,
-    Color.configure({
-      types: ['textStyle']
-    }),
+    TextStyleKit,
     TextAlign.configure({
       types: ['heading', 'paragraph', 'blockquote']
-    }),
-    Link.configure({})
+    })
   ],
   onUpdate: ({ editor }) => {
     content.value = editor.getHTML();
@@ -122,6 +103,7 @@ const insertImage = () => {
 }
 
 const color = ref("000")
+const fontSize = ref(16)
 
 const setTextColor = (color) => {
   if (color) {
@@ -195,6 +177,10 @@ function close() {
           </Button>
           <Button @click="editor?.chain().focus().toggleUnderline().run()" :class="{ active: editor?.isActive('underline') }">
             <img :src="underlineIcon" alt="underline"/>
+          </Button>
+          <Button @click="editor?.chain().focus().setFontSize(fontSize + 'px').run()">
+            <img :src="fontIcon" alt="font size">
+            <InputNumber v-model="fontSize" @click.stop size="small" class="fontSize"/>
           </Button>
 
           <!-- Заголовки -->
@@ -369,5 +355,11 @@ main {
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+.fontSize :deep(.p-inputtext) {
+  width: 50px;
+  font-size: 12px;
+  padding: 4px;
 }
 </style>
