@@ -30,7 +30,7 @@ const visible = ref(false);
           Тема: {{ log.subject }}
         </p>
       </template>
-      {{ log.message }}
+      <div v-html="log.message" class="message"/>
     </Dialog>
   </div>
 </template>
@@ -40,5 +40,22 @@ const visible = ref(false);
   font-size: 20px;
   font-weight: bold;
   margin-right: 20px;
+}
+
+.message {
+  background: white;
+  border-radius: 20px;
+  padding: 10px;
+  color: black;
+}
+
+.message :deep(strong) {
+  font-weight: bold;
+}
+
+.message :deep(blockquote) {
+  border-left: 3px solid gray;
+  margin: 1.5rem 0;
+  padding-left: 1rem;
 }
 </style>
