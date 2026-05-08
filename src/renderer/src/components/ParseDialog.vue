@@ -19,6 +19,7 @@ const name3Column = ref("C");
 const emailColumn = ref("D");
 const canName3Empty = ref(true);
 const skip = ref(1);
+const condition = ref("true");
 
 function selectFile() {
   emit("update:visible", false);
@@ -28,7 +29,8 @@ function selectFile() {
     name3Column: name3Column.value,
     emailColumn: emailColumn.value,
     canName3Empty: canName3Empty.value,
-    skip: skip.value
+    skip: skip.value,
+    condition: condition.value
   });
 }
 </script>
@@ -57,6 +59,21 @@ function selectFile() {
         <InputNumber id="skip" v-model="skip" autocomplete="off"/>
         <label for="skip">Пропустить заголовки: </label>
       </FloatLabel>
+      <FloatLabel variant="on">
+        <InputText id="condition" v-model="condition" autocomplete="off"/>
+        <label for="condition">Условие: </label>
+      </FloatLabel>
+      <p>
+        Например, E >= 30 или F === 1
+        <br>
+        && - логическое и
+        <br>
+        || - логическое или
+        <br>
+        ! - логическое не
+        <br>
+        Есть поддержка других js операторов/функций
+      </p>
       <Button @click="selectFile">Выбрать</Button>
     </div>
   </Dialog>

@@ -118,7 +118,8 @@ export async function sendEmails(app: WebContents) {
 }
 
 export function setEmails(file: string, options: ParseOptions, app: WebContents) {
-  emails = validate(parse(file, options)).map(({ valid, ...entry }) => ({ uuid: crypto.randomUUID(), status: valid ? 0 : -1, ...entry }));
+  emails = validate(parse(file, options), options)
+      .map(entry => ({ uuid: crypto.randomUUID(), status: 0, ...entry }));
   app.send("set", emails);
 }
 

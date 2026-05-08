@@ -1,4 +1,5 @@
 import * as XLSX from "xlsx";
+import safeEval from "safe-eval";
 
 export type ParseOptions = {
   nameColumn: string,
@@ -6,7 +7,8 @@ export type ParseOptions = {
   name3Column: string,
   emailColumn: string,
   canName3Empty: string,
-  skip: number
+  skip: number,
+  condition: string
 };
 
 export type Entry = {
@@ -65,15 +67,24 @@ export function parse(file: string, options: ParseOptions): Array<Omit<Entry, "u
       lastName: lastNames.get(i) ?? "",
       name3: names3.get(i) ?? "",
       email: emails.get(i) ?? "",
-      columns: columns.get(i) ?? {},
+      columns: columns.get(i) ?? {}
     });
   }
   return ret;
 }
 
-export function validate(array: Array<Omit<Entry, "uuid" | "status">>): Array<Omit<Entry, "uuid" | "status"> & {valid: boolean}> {
-  return array.map(entry => ({
-    ...entry,
-    valid: /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/.test(entry.email)
-  }))
+export function evalCondition(condition: string, columns: Record<string, any>, allColumns: Set<string>): boolean {
+  console.log(Object.fromEntries(allColumns.values().map(key => [key, columns[key]])));
+  return Boolean(safeEval(condition, Object.fromEntries(allColumns.values().map(key => [key, columns[key]]))));
+}
+
+export function validate(array: Array<Omit<Entry, "uuid" | "status">>, options: ParseOptions): Array<Omit<Entry, "uuid" | "status">> {
+  const allColumns = new Set<string>();
+  array.forEach(({columns}) => {
+    Object.keys(columns).forEach(key => allColumns.add(key));
+  });
+  return array.filter(entry => (
+    /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/.test(entry.email)
+    && evalCondition(options.condition, entry.columns, allColumns)
+  ));
 }
