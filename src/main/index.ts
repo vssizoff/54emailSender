@@ -83,6 +83,14 @@ function createWindow(): void {
     mainWindow.show()
   })
 
+  mainWindow.on('closed', () => {
+    secondaryWindows.forEach(window => {
+      try {
+        window.close();
+      } catch {}
+    });
+  });
+
   mainWindow.webContents.setWindowOpenHandler((details) => {
     shell.openExternal(details.url)
     return { action: 'deny' }
