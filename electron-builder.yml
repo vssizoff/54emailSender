@@ -13,6 +13,8 @@ asarUnpack:
   - resources/**
 win:
   executableName: 54emailSender
+  signAndEditExecutable: false
+  signingHashAlgorithms: []
 nsis:
   artifactName: ${name}-${version}-setup.${ext}
   shortcutName: ${productName}
