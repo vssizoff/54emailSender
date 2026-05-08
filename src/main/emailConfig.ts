@@ -20,10 +20,12 @@ export function getEmails() {
 
 export function addEmail(entry: EmailConfig, app: WebContents) {
   if (!config) {
-    config = {emails: [], selected: 0};
+    config = {emails: [entry], selected: 0};
     setup(config.emails[config.selected]);
   }
-  config.emails.push(entry);
+  else {
+    config.emails.push(entry);
+  }
   set("emails.json", config);
   app.send("emailConfig", config);
 }
