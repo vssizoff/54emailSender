@@ -63,6 +63,13 @@ export async function send(to: string, sender: string, subject: string, message:
 
 let emails: Array<Entry> = [];
 
+export function previewEmail(uuid: string) {
+  let entry = emails.filter(({status, uuid: id}) => status === 0 && id === uuid)[0];
+  if (!entry) return;
+  let {firstName, lastName, name3, email} = entry;
+  return useTemplate({firstName, lastName, name3, email, mailUser});
+}
+
 export async function sendEmail(uuid: string, app: WebContents) {
   let entry = emails.filter(({status, uuid: id}) => status === 0 && id === uuid)[0];
   console.log(uuid);

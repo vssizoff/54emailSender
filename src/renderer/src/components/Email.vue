@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { Badge, Button, Panel } from "primevue";
+import {Badge, Button, Dialog, Panel} from "primevue";
+import {ref} from "vue";
 
 const props = defineProps({
   firstName: {
@@ -35,6 +36,14 @@ function send() {
 function rm() {
   window.electron.ipcRenderer.invoke("rm", props.uuid);
 }
+
+const preview = ref<{data: string, sender: string, subject: string} | undefined>(undefined);
+const dialogVisible= ref(false);
+
+async function getPreview() {
+  preview.value = await window.electron.ipcRenderer.invoke("preview", props.uuid);
+  dialogVisible.value = true;
+}
 </script>
 
 <template>
@@ -49,9 +58,22 @@ function rm() {
     </template>
     <span class="text">{{props.firstName}} {{props.lastName}} {{props.name3}}</span>
     <div class="buttons">
+      <Button @click="getPreview">Предпросмотр</Button>
       <Button @click="send" v-if="status === 0 || status === -2">Отправить</Button>
       <Button @click="rm" severity="danger">Удалить</Button>
     </div>
+    <Dialog v-model:visible="dialogVisible" v-if="preview">
+      <template #header>
+        <p class="dialogHeader">
+          Отправитель: {{ preview.sender }}
+          <br>
+          Получатель: {{ email }}
+          <br>
+          Тема: {{ preview.subject }}
+        </p>
+      </template>
+      <div v-html="preview.data" class="message"/>
+    </Dialog>
   </Panel>
 </template>
 
@@ -77,5 +99,22 @@ function rm() {
   text-align: left;
   display: inline-block;
   width: 100%;
+}
+
+.message {
+  background: white;
+  border-radius: 20px;
+  padding: 10px;
+  color: black;
+}
+
+.message :deep(strong) {
+  font-weight: bold;
+}
+
+.message :deep(blockquote) {
+  border-left: 3px solid gray;
+  margin: 1.5rem 0;
+  padding-left: 1rem;
 }
 </style>

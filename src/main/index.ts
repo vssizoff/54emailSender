@@ -2,7 +2,7 @@ import { app, shell, BrowserWindow, ipcMain, dialog } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
-import { rm, rmAll, sendEmail, sendEmails, setEmails } from "./email.js";
+import {previewEmail, rm, rmAll, sendEmail, sendEmails, setEmails} from "./email.js";
 import { addEmail, editEmail, type EmailConfig, getEmails, removeEmail, selectEmail } from "./emailConfig.js";
 import {
     addTemplate,
@@ -125,6 +125,10 @@ app.whenReady().then(() => {
     });
     if (file.canceled) return;
     setEmails(file.filePaths[0], options, event.sender);
+  });
+
+  ipcMain.handle("preview", async (_, uuid: string) => {
+    return previewEmail(uuid);
   });
 
   ipcMain.handle("sendAll", async event => {
