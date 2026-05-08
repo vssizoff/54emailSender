@@ -62,9 +62,11 @@ function createTemplateEditorWindow(index: number): void {
     secondaryWindows.push(window);
 }
 
+let mainWindow: BrowserWindow;
+
 function createWindow(): void {
   // Create the browser window.
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 900,
     height: 670,
     show: false,
@@ -170,16 +172,16 @@ app.whenReady().then(() => {
     return getTemplates();
   });
 
-  ipcMain.handle("addTemplate", (event, name: string, sender: string, subject: string, data: string, staticVars: Record<string, string>, tableVars: Record<string, string>) => {
-    addTemplate(name, sender, subject, data, staticVars, tableVars, event.sender);
+  ipcMain.handle("addTemplate", (_, name: string, sender: string, subject: string, data: string, staticVars: Record<string, string>, tableVars: Record<string, string>) => {
+    addTemplate(name, sender, subject, data, staticVars, tableVars, mainWindow.webContents);
   });
 
   ipcMain.handle("removeTemplate", (event, index: number) => {
     removeTemplate(index, event.sender);
   });
 
-  ipcMain.handle("editTemplate", (event, index: number, name: string, sender: string, subject: string, data: string, staticVars: Record<string, string>, tableVars: Record<string, string>) => {
-    editTemplate(index, name, sender, subject, data, staticVars, tableVars, event.sender);
+  ipcMain.handle("editTemplate", (_, index: number, name: string, sender: string, subject: string, data: string, staticVars: Record<string, string>, tableVars: Record<string, string>) => {
+    editTemplate(index, name, sender, subject, data, staticVars, tableVars, mainWindow.webContents);
   });
 
   ipcMain.handle("selectTemplate", (event, index: number) => {
@@ -205,6 +207,13 @@ app.whenReady().then(() => {
 
   ipcMain.handle("getFullTemplate", (_, index: number) => {
       return getFullTemplate(index);
+  });
+
+  ipcMain.handle("close", event => {
+      const window = BrowserWindow.fromWebContents(event.sender);
+      if (window) {
+          window.close();
+      }
   });
 
   createWindow()
