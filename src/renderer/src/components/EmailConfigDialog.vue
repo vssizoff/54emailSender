@@ -75,24 +75,24 @@ watch(sendsPerHour, value => emit("update:email", {
   <Dialog>
     <div class="dialog">
       <FloatLabel variant="on">
-        <InputText id="user" v-model="user" autocomplete="off"/>
+        <InputText id="user" v-model="user" autocomplete="off" class="input"/>
         <label for="user">User</label>
       </FloatLabel>
       <FloatLabel variant="on">
-        <InputText id="host" v-model="host" autocomplete="off"/>
+        <InputText id="host" v-model="host" autocomplete="off" class="input"/>
         <label for="host">SMTP host</label>
       </FloatLabel>
       <FloatLabel variant="on">
-        <InputText id="pass" v-model="pass" autocomplete="off"/>
+        <InputText id="pass" v-model="pass" autocomplete="off" class="input"/>
         <label for="pass">Pass</label>
       </FloatLabel>
       <FloatLabel variant="on">
-        <InputNumber id="port" v-model="port" autocomplete="off"/>
+        <InputNumber id="port" v-model="port" autocomplete="off" class="input"/>
         <label for="port">Port</label>
       </FloatLabel>
       <span class="secure">Secure: <ToggleSwitch v-model="secure"/></span>
       <FloatLabel variant="on">
-        <InputNumber id="sendsPerHour" v-model="sendsPerHour" autocomplete="off"/>
+        <InputNumber id="sendsPerHour" v-model="sendsPerHour" autocomplete="off" class="longInput"/>
         <label for="sendsPerHour">За час автоматически (кнопка "отправить неотправленное") отправлять писем</label>
       </FloatLabel>
       <slot/>
@@ -113,5 +113,13 @@ watch(sendsPerHour, value => emit("update:email", {
   div {
     margin-left: 10px;
   }
+}
+
+.longInput {
+  min-width: 470px;
+}
+
+.input {
+  width: 100%;
 }
 </style>
