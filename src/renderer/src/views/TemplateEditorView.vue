@@ -317,7 +317,7 @@ main {
   height: 100%;
   outline: none !important;
 
-  :deep(strong) {
+  :deep(strong), :deep(strong) * {
     font-weight: bold;
   }
 

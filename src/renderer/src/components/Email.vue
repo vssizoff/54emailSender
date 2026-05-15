@@ -56,7 +56,7 @@ async function getPreview() {
         </Badge>
       </div>
     </template>
-    <span class="text">{{props.firstName}} {{props.lastName}} {{props.name3}}</span>
+    <span class="text">{{props.lastName}} {{props.firstName}} {{props.name3}}</span>
     <div class="buttons">
       <Button @click="getPreview">Предпросмотр</Button>
       <Button @click="send" v-if="status === 0 || status === -2">Отправить</Button>
@@ -108,7 +108,7 @@ async function getPreview() {
   color: black;
 }
 
-.message :deep(strong) {
+.message :deep(strong), .message :deep(strong) * {
   font-weight: bold;
 }
 

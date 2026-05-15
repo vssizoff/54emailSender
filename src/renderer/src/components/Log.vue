@@ -49,7 +49,7 @@ const visible = ref(false);
   color: black;
 }
 
-.message :deep(strong) {
+.message :deep(strong), .message :deep(strong) * {
   font-weight: bold;
 }
 

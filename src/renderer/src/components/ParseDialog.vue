@@ -13,8 +13,8 @@ const emit = defineEmits({
   "update:visible": (_: boolean) => true
 });
 
-const nameColumn = ref("A");
-const surnameColumn = ref("B");
+const nameColumn = ref("B");
+const surnameColumn = ref("A");
 const name3Column = ref("C");
 const emailColumn = ref("D");
 const canName3Empty = ref(true);
@@ -36,7 +36,7 @@ function selectFile() {
 </script>
 
 <template>
-  <Dialog header="Вымерите колонки в таблице" :visible="props.visible" @update:visible="$emit('update:visible', $event)">
+  <Dialog header="Выберите колонки в таблице" :visible="props.visible" @update:visible="$emit('update:visible', $event)">
     <div class="dialog">
       <FloatLabel variant="on">
         <InputText id="nameColumn" v-model="nameColumn" autocomplete="off"/>
